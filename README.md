@@ -1,6 +1,6 @@
 # DXF-Playground
 
-![Screenshot](https://github.com/timothyhale/dxf-playground/images/screenshot.png)
+![Screenshot](https://github.com/timothyhale/dxf-playground/blob/main/images/screenshot.png)
 
 
 ## Set-up instructions
