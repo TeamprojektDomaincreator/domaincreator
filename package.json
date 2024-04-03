@@ -1,0 +1,20 @@
+{
+  "name": "dxf-playground",
+  "version": "1.0.0",
+  "description": "Simple program to test out loading a dxf file",
+  "main": "www/index.html",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --outdir=www",
+    "run": "esbuild src/main.ts --bundle --outdir=www --servedir=www --serve --watch"
+  },
+  "author": "Timothy Hale",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/dxf": "^4.6.7",
+    "esbuild": "0.20.2",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "dxf": "^5.1.0"
+  }
+}
