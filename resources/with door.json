@@ -1,0 +1,106 @@
+{
+  "name": "unknwon Simulation",
+  "Scenario": {
+    "charLength": 10,
+    "charDensity": 8,
+    "charVelocity": 1.34,
+    "startPersons": 100,
+    "randPersons": 1,
+    "maxTime": 100
+  },
+  "Fundamentaldiagramm": 5,
+  "Infection": {
+    "percentInfected": 0.05,
+    "criticalDistance": 0.5,
+    "infectionRate": 0.65,
+    "percentRemoved": 0.1,
+    "resistanceTime": 1,
+    "moveMode": 0
+  },
+  "Agents": 0,
+  "Measurementstations": [],
+  "Entrance": [],
+  "Exit": [
+    {
+      "wallId": "wn4gIS1JUn9oU1Stbu3LMWkx0wqqMlZUzid5cHE0ax",
+      "name": "door",
+      "xr": 101,
+      "yr": 176.31832227384348,
+      "xl": 101,
+      "yl": 155.5183222738434,
+      "weight": 1
+    }
+  ],
+  "Attractors": [],
+  "SubdomainsFD": [],
+  "SubdomainsRhoInit": [],
+  "Refinement": {
+    "decompositionLevel": "medium",
+    "localRefinement": 0,
+    "localMarkMethod": 0,
+    "globalRefinement": 0
+  },
+  "Domainpolygon": {
+    "numberPoints": 4,
+    "segmentPoints": [
+      101,
+      102,
+      101,
+      201,
+      201,
+      201,
+      201,
+      101
+    ],
+    "numberSegments": 4,
+    "pointOrder": [
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      0
+    ],
+    "numberHoles": 0,
+    "holes": []
+  },
+  "Grid": {},
+  "PolygonCorners": {
+    "corners": [
+      {
+        "id": "wn4gIS1JUn9oU1Stbu3LM",
+        "x": 101,
+        "y": 898
+      },
+      {
+        "id": "Wkx0wqqMlZUzid5cHE0ax",
+        "x": 101,
+        "y": 799
+      },
+      {
+        "id": "0UBdjflvndYewXmm7Vlqt",
+        "x": 201,
+        "y": 799
+      },
+      {
+        "id": "N-VvX5ZEcGiR5eR84PaBu",
+        "x": 201,
+        "y": 899
+      }
+    ],
+    "closed": true
+  },
+  "HoleCorners": [],
+  "BackgroundImagePosition": {
+    "name": "default",
+    "x": 0,
+    "y": 0,
+    "width": 0,
+    "height": 0,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1
+  }
+}

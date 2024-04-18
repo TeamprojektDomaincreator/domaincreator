@@ -15,6 +15,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "dxf": "^5.1.0"
+    "dxf": "^5.1.0",
+    "dxf-json": "^0.0.41"
   }
 }
