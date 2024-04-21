@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Helper } from 'dxf';
+import DxfParser from 'dxf-json';
 
 
 export const FileUpload = () => { 
@@ -17,13 +18,17 @@ export const FileUpload = () => {
     const reader = new FileReader();
 
     reader.onload = function(event) {
-        if (typeof event.target.result !== "string") {
+        if ( !event.target || typeof event.target.result !== "string") {
             console.warn("Result was not a string!");
             return;
         }
+        const parser = new DxfParser();
+        const parsed = parser.parseSync(event.target.result);
+        console.log('dxf-json parsed', parsed);
+
+        // only for testing included
         const h = new Helper(event.target.result);
         console.log(h.toPolylines())
-        // numberOfEntities.innerHTML = h.denormalised?.length.toString()
         if (!svgRef.current) return;
         svgRef.current.innerHTML = h.toSVG()
     };
