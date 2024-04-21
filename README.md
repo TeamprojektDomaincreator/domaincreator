@@ -1,32 +1,30 @@
-# DXF-Playground
+# React + TypeScript + Vite
 
-![Screenshot](https://github.com/timothyhale/dxf-playground/blob/main/images/screenshot.png)
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+Currently, two official plugins are available:
 
-## Set-up instructions
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-- Install, build and run server:
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+
+- Configure the top-level `parserOptions` property like this:
 
 ```js
-npm install
-npm run
+export default {
+  // other rules...
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    project: ['./tsconfig.json', './tsconfig.node.json'],
+    tsconfigRootDir: __dirname,
+  },
+}
 ```
 
-- Click on URL:
-
-```
-> dxf-playground@1.0.0 run
-> esbuild src/main.ts --bundle --outdir=www --servedir=www --serve --watch
-
-
- > Local:   http://127.0.0.1:8000/
- > Network: http://192.168.0.107:8000/
-
-[watch] build finished, watching for changes...
-
-```
-
-- Select a dxf file to load.
-
-
-
+- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
+- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
