@@ -6,10 +6,14 @@
     <title>DXF-Playground</title>
 </head>
 <body>
-<button id="drawButton">Load File</button>
-<input type="file" id="fileInput" style="display: none;">
-<div>Number of entities:<span id="numberOfEntities">-</span></div>
-<div id="svg"></div>
-<script src="main.js"></script>
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+    <button id="drawButton">Load File</button>
+    <button id="scaleUpButton">Scale +</button>
+    <button id="scaleDownButton">Scale -</button>
+    <button id="goBackLayer">Prev</button>
+    <button id="advanceLayer">Next</button>
+    <input type="file" id="fileInput" style="display: none;">
+    <div>Number of lines:<span id="numberOfEntities">-</span></div>
+    <script src="main.js"></script>
 </body>
 </html>
