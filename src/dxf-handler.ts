@@ -4,6 +4,8 @@ interface LayerInfo {
     min_y: number,
 }
 
+const identifiers = ['AcDbEntity', 'AcDbLine', ' 8', ' 10', ' 20', ' 11', ' 21'];
+
 /**
  * Handles DXF Files.
  * 
@@ -82,48 +84,38 @@ export class DxfHandler {
         }
         let time = performance.now();
         let entityCount = 0
-        fileText.split('AcDbEntity').forEach((value) => {
-            /* Skip the header */
-            if (entityCount === 0) {
-                entityCount++;
-                return;
-            }
+        let temp = 0;
+        let layername = "";
+        const returnChar = fileText.indexOf("\r") === -1 ? '\n' : '\r';
+        const keyWords = [];
+        for (let i = 0; i < identifiers.length; i++) {
+            keyWords.push(identifiers[i] + returnChar);
+        }
+        for (let i = 0; i < fileText.length; i++) {
+            i = fileText.indexOf(keyWords[0], i);
+            /* No Entities anymore */
+            if (i === -1) break;
             entityCount++;
-            /* Skip everything thats not a line */
-            if (!value.includes("AcDbLine")) return;
-
-            const entity = value.split('\n').map((x) => {
-                if (x.startsWith(' ')) {
-                    return 'ID' + x.trim();
-                }
-                return x.trim();
-            });
-
-            const layerName = entity[2];
-            if (!this.layerNames.includes(layerName)) {
-                const newId = this.layerNames.push(layerName);
-                this.lines[newId - 1] = [];
+            temp = fileText.indexOf('AcDb', i+9)
+            if (fileText.substring(temp, temp + 9 ) !== keyWords[1]) {
+                continue;
             }
-            const id = this.layerNames.indexOf(layerName);
-            for (let i = 0; i < entity.length; i++) {
-                switch (entity[i]) {
-                    case 'ID10':
-                        this.lines[id].push(parseFloat(entity[i + 1]));
-                        break;
-                    case 'ID20':
-                        this.lines[id].push(parseFloat(entity[i + 1]));
-                        break;
-                    case 'ID11':
-                        this.lines[id].push(parseFloat(entity[i + 1]));
-                        break;
-                    case 'ID21':
-                        this.lines[id].push(parseFloat(entity[i + 1]));
-                        return
-                    default:
-                }
-
+            i = fileText.indexOf(keyWords[2], i);
+            /* Skip until next entry */
+            i = fileText.indexOf('\n', i) + 1;
+            layername = fileText.substring(i, fileText.indexOf(returnChar, i));
+            if (this.layerNames.indexOf(layername) === -1) {
+                this.layerNames.push(layername);
+                this.lines.push([]);
             }
-        });
+            const id = this.layerNames.indexOf(layername);
+            for (let j = 3; j < keyWords.length; j++) {
+                i = fileText.indexOf(keyWords[j], i);
+                /* Skip until next entry */
+                i = fileText.indexOf('\n', i) + 1;
+                this.lines[id].push(parseFloat(fileText.substring(i, fileText.indexOf(returnChar, i))))
+            }
+        }
         time = performance.now() - time;
         console.log(`DXF-Handler: Took ${time} ms to parse ${entityCount + 1} entities.`)
 
