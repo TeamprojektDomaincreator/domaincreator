@@ -79,7 +79,7 @@ export class DxfHandler {
 
         const fileText = reader.result;
         if (!fileText || fileText instanceof ArrayBuffer) {
-            console.warn('DXF-Handler: Unable to load file.');
+            console.error('DXF-Handler: Unable to load file.');
             return;
         }
         let time = performance.now();
@@ -117,7 +117,7 @@ export class DxfHandler {
             }
         }
         time = performance.now() - time;
-        console.log(`DXF-Handler: Took ${time} ms to parse ${entityCount + 1} entities.`)
+        console.log(`DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`)
 
         this._addLayerInfo();
     }
