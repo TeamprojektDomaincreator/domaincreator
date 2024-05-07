@@ -147,6 +147,10 @@ export class DxfHandler {
             const lines = this.layers[i].lines;
             const minPoint = new Float32Array(2);
             const maxPoint = new Float32Array(2);
+            minPoint[0] = lines[0];
+            minPoint[1] = lines[1];
+            maxPoint[0] = lines[0];
+            maxPoint[1] = lines[1];
           
             for (let j = 0; j < lines.length; j += 2) {
               minPoint[0] = Math.min(minPoint[0], lines[j]);
