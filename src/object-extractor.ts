@@ -81,6 +81,10 @@ class Vertex {
     equals(vertex: Vertex): boolean{
         return this.x === vertex.x && this.y === vertex.y;
     }
+
+    toString(): string {
+        return `X: ${this.x} | Y: ${this.y}`;
+    }
 }
 
 export class AdjacencyMatrix{
@@ -121,4 +125,94 @@ export class AdjacencyMatrix{
         }
         return -1;
     }
+
+    _getEdges(): [Vertex, Vertex][] {
+        const edges: [Vertex, Vertex][] = [];
+        for (let i = 0; i < this.vertecies.length; i++) {
+            for (let j = i; j < this.vertecies.length; j++) {
+                if (this.matrix.getCell(i, j)) {
+                    edges.push([this.vertecies[i], this.vertecies[j]]);
+                }
+            }
+        }
+        return edges;
+    }
+
+    getConnectedComponents() {
+        let edges = this._getEdges();
+        let n = this.vertecies.length;
+
+        // Initialize parent array for each node
+        let parent: Map<Vertex, Vertex> = new Map();
+        for (let vertex of this.vertecies){
+            parent.set(vertex, vertex);
+        }
+
+        for (let [vertex1, vertex2] of edges) {
+            parent.set(this._merge(parent, vertex1), this._merge(parent, vertex2))
+        }
+
+        // Count the number of nodes with self as parent, which are the roots of connected components
+        let ans = 0;
+        for (let vertex of this.vertecies) {
+            if (parent.get(vertex) === vertex) {
+                ans++;
+            }
+        }
+    
+        // Find the parent of each node again, and group nodes with the same parent
+        for (let vertex of this.vertecies) {
+            parent.set(vertex, this._merge(parent, parent.get(vertex)!));
+        }
+    
+        let m: Map<Vertex, Vertex[]> = new Map();
+        for (let vertex of this.vertecies) {
+            let root = parent.get(vertex)!;
+            if (!m.has(root)) {
+                m.set(root, []);
+            }
+            m.get(root)!.push(vertex);
+        }
+    
+        // Print the nodes in each connected component
+        console.log("Following are connected components:");
+        for (let [key, value] of m) {
+            console.log(value.join(" ; "));
+        }
+    
+        // Return the number of connected components
+        return m;
+
+    }
+
+    _merge(parent: Map<Vertex, Vertex>, vertex: Vertex): Vertex {
+        if (parent.get(vertex) !== vertex) {
+            parent.set(vertex, this._merge(parent, parent.get(vertex)!));
+        }
+        return parent.get(vertex)!;
+    }
+
+    _getGraphsArrayWithStartAndAllEdges() {
+        let edges = this._getEdges();
+        let graphs = this.getConnectedComponents();
+        let graphsArray: Graph[] = [];
+        for (let [key, value] of graphs) {
+            graphsArray.push({key: key, allVertices: value, allEdges: []});
+        }
+        for (let graph of graphsArray) {
+            for (let [vertex1, vertex2] of edges) {
+                if (graph.allVertices.includes(vertex1) && graph.allVertices.includes(vertex2)) {
+                    graph.allEdges.push([vertex1, vertex2]);
+                }
+            }
+        }
+        console.log("graphsArray: ", graphsArray);
+
+    }
+}
+
+interface Graph {
+    key: Vertex;
+    allVertices: Vertex[];
+    allEdges: [Vertex, Vertex][];
 }
