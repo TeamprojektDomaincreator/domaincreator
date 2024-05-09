@@ -53,9 +53,9 @@ function updateCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
-    const listRef = dxfHandler.linesOnCurrentLayer; 
-    const trans_x = -1 * dxfHandler.layerInfo[dxfHandler._currentIndex].min_x;
-    const trans_y = -1 * dxfHandler.layerInfo[dxfHandler._currentIndex].min_y;
+    const listRef = dxfHandler.currentLayer.lines; 
+    const trans_x = -1 * dxfHandler.currentLayer.minPoint[0];
+    const trans_y = -1 * dxfHandler.currentLayer.minPoint[1];
     let count = 0;
     let x1, y1, x2, y2;
     while(count < listRef.length) {
@@ -70,5 +70,5 @@ function updateCanvas() {
         ctx.stroke();
         count+=4;
     }
-    numEntities!.innerText = (dxfHandler.linesOnCurrentLayer.length / 4).toString();
+    numEntities!.innerText = (dxfHandler.currentLayer.lines.length / 4).toString();
 }
