@@ -1,3 +1,5 @@
+import { AdjacencyMatrix } from "./object-extractor";
+
 /**
  * Represents a DXF Layer
  */
@@ -183,10 +185,10 @@ export class DxfHandler {
      * @param layerIndices List of indices that the user selected for extraction.
      * @returns A list of of Float32Arrays that each represent a polyline of a object. 
      */
-    extractObjects(layerIndices: number[]): Float32Array[] {
-        const res: Float32Array[] = []
-        // @todo: Add implementation
-        return res;
+    extractObjects(): void {
+        const lines = [0, 0, 1, 1, 1, 1, 2, 3, 2, 3, 0, 0, 5, 6, 8,9];
+        const polyline = new AdjacencyMatrix(this.currentLayer.lines.length / 2);
+        polyline.addLines(this.currentLayer.lines);
     }
 
     /**

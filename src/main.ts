@@ -1,4 +1,3 @@
-import { Canvas, CanvasRenderingContext2D } from 'canvas';
 import { DxfHandler} from "./dxf-handler";
 
 let scaleFactor = 1;
@@ -28,6 +27,7 @@ goBackButton!.addEventListener('click', () => {
 advanceButton!.addEventListener('click', () => {
     dxfHandler.moveToNextLayer();
     updateCanvas();
+    dxfHandler.extractObjects();
 });
 
 scaleUp!.addEventListener('click', () => {
