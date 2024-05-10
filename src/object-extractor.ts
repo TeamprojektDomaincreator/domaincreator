@@ -1,26 +1,25 @@
 class Matrix {
 
-    maxSize;
-    currentSize;
+    size;
 
-    cells: Int8Array = new Int8Array(0);
+    cells: number[] = [];
 
     /**
      * 
      * @param size Worst case size. (No lines match)
      */
     constructor(size: number) {
-        this.maxSize = size;
-        this.currentSize = size / 2 + 1 // @todo: Tune later 
-        this.cells = new Int8Array(this.currentSize * this.currentSize);
+        this.size = size;
     }
 
     setCell(row: number, col: number) {
-        if (row > this.maxSize || col > this.maxSize) return;
-        if (row > this.currentSize || col > this.currentSize) {
-            this.increaseSize();
+        if (row > this.size || col > this.size) return;
+        if (row > col) {
+            const temp = row;
+            row = col;
+            col = temp;
         }
-        this.cells[row * this.currentSize + col] = 1;
+        this.cells.push(row * this.size + col)
     }
 
     /**
@@ -31,41 +30,32 @@ class Matrix {
      * @returns -1 If row or col is invalid.
      */
     getCell(row: number, col: number): number{
-        if (row > this.currentSize || col > this.currentSize) return -1;
-        return this.cells[row * this.currentSize + col];
-    }
-
-    /**
-     * @todo: Change to not maxsize
-     */
-    increaseSize() {
-        const newCells = new Int8Array(this.maxSize * this.maxSize);
-        let row = 0;
-        let col = 0;
-        for (let i = 0; i < this.cells.length; i++) {
-            newCells[row * this.maxSize + col] = this.cells[i];
-            col = i % this.currentSize;
-            if (i % this.currentSize === 0) row++;
+        if (row > this.size || col > this.size) return -1;
+        if (row > col) {
+            const temp = row;
+            row = col;
+            col = temp;
         }
-        this.currentSize = this.maxSize;
-        this.cells = newCells
+        return this.cells.indexOf(row * this.size + col) === -1 ? 0 : 1
     }
 
     print(){
         let printstring: string = "    ";
-        for (let i = 0; i < this.currentSize; i++) {
+        for (let i = 0; i < this.size; i++) {
             printstring += String(i) + " ";
         }
         console.log(printstring+"\n");
         printstring = "";
         let count = 0;
-        for(let i = 0; i < this.cells.length; i++) {
-            if(i % this.currentSize === 0) {
+        let res = 0;
+        for(let i = 0; i < this.size * this.size; i++) {
+            if(i % this.size === 0) {
                 console.log(printstring+"\n");
                 printstring = String(count) +"   ";
                 count++;
             }
-            printstring += String(this.cells[i]) + " ";
+            res = this.cells.indexOf(i) === -1 ? 0 : 1;
+            printstring += String(res + " ");
         }
                 console.log(printstring+"\n");
     }
@@ -93,6 +83,7 @@ export class AdjacencyMatrix{
     }
 
     addLines(lines: number[]) {
+        let time = performance.now();
         for (let i = 0; i < lines.length; i+=4) {
             const start = new Vertex(lines[i], lines[i+1]);
             const end = new Vertex(lines[i+2], lines[i+3]);
@@ -107,8 +98,10 @@ export class AdjacencyMatrix{
             }
 
             this.matrix.setCell(start_index, end_index);
-            this.matrix.setCell(end_index, start_index); // @todo: Remove unnecessary step, this can be assumed + shrink matrix by half
         }
+        time = performance.now() - time;
+        console.log(time)
+        console.log(((this.matrix.cells.length * 64) / 8) / 1024);
         this.matrix.print();
         for (let i = 0; i < this.vertecies.length; i++) {
             console.log(`Index ${i} = X: ${this.vertecies[i].x} | Y: ${this.vertecies[i].y}`);
@@ -116,7 +109,7 @@ export class AdjacencyMatrix{
     }
 
     indexOf(vertex: Vertex): number {
-        for (let i = 0; i < this.vertecies.length; i++) {
+        for (let i = this.vertecies.length - 1; i >= 0; i--) {
             if (this.vertecies[i].equals(vertex)) return i;
         }
         return -1;
