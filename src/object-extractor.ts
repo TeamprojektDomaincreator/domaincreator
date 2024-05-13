@@ -138,6 +138,32 @@ export class AdjacencyMatrix{
         return edges;
     }
 
+    _dfs(vertexIndex: number, visited: boolean[], component: Vertex[] = []) {
+        visited[vertexIndex] = true;
+        component.push(this.vertecies[vertexIndex]);
+        for (let i = 0; i < this.vertecies.length; i++) { 
+            if (this.matrix.getCell(vertexIndex, i) && !visited[i]) {
+                this._dfs(i, visited, component);
+            }
+        }
+    }
+
+    _getConnectedComponentsWithDfs() {
+        let visited: boolean[] = new Array(this.vertecies.length).fill(false);
+        let components: Vertex[][] = [];
+        for (let i = 0; i < this.vertecies.length; i++) {
+            if (!visited[i]) {
+                let component: Vertex[] = [];
+                this._dfs(i, visited, component);
+                components.push(component);
+            }
+        }
+        console.log("Following are connected components dfs:");
+        for (let component of components) {
+            console.log(component.map(vertex => vertex.toString()).join(" ; "));
+        }
+    }
+
     getConnectedComponents() {
         let edges = this._getEdges();
         let n = this.vertecies.length;
