@@ -201,9 +201,17 @@ export class DxfHandler {
         console.log(ccAdjacencyMatrix)
 
         ccAdjacencyMatrix.forEach((cc) => {
-            cc._findCycles();
-            console.log(cc.allCycles)
+            const cycleGraphs = cc._findCycles();
+            console.log("print cycles: ", cycleGraphs);
+
+            cycleGraphs.forEach((cycle) => {
+                console.log("print cycle: ", cycle.toEflowFormat());
+                
+            })
+
         })
+
+
 
 
         //polyline._findCycles();

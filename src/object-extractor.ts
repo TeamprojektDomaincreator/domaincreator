@@ -118,10 +118,105 @@ export class Graph {
   }
 }
 
+export class CycleGraph extends Graph {
+  constructor(
+    key: Vertex,
+    allVertices: Vertex[],
+    allEdges: [Vertex, Vertex][]
+  ) {
+    super(key, allVertices, allEdges);
+  }
+
+  base = {
+    name: "Video2",
+    Scenario: {
+      charLength: 34,
+      charDensity: 8,
+      charVelocity: 1.34,
+      startPersons: 100,
+      randPersons: 1,
+      maxTime: 20,
+    },
+    Fundamentaldiagramm: 5,
+    Infection: {
+      percentInfected: 0.05,
+      criticalDistance: 0.5,
+      infectionRate: 65,
+      percentRemoved: 0.1,
+      resistanceTime: 1,
+      moveMode: 0,
+    },
+    Agents: 1,
+    Measurementstations: [],
+    Entrance: [],
+    Exit: [] as any[],
+    Attractors: [],
+    SubdomainsFD: [],
+    SubdomainsRhoInit: [],
+    Refinement: {
+      decompositionLevel: "medium",
+      localRefinement: 0,
+      localMarkMethod: 0,
+      globalRefinement: 0,
+    },
+    Domainpolygon: {
+      numberPoints: 0,
+      segmentPoints: [] as number[],
+      numberSegments: 0,
+      pointOrder: [] as number[],
+      numberHoles: 0,
+      holes: [],
+    },
+    Grid: {},
+  };
+
+  toEflowFormat() {
+    const numberPoints = this.allVertices.length;
+    const numberSegments = this.allVertices.length;
+
+    const segmentPoints = this.allVertices
+      .map((vertex) => vertex.toLinePoint())
+      .flat();
+
+    const pointOrder = this.allEdges.map(([vertex1, vertex2]) => {
+      return [
+        this.allVertices.indexOf(vertex1),
+        this.allVertices.indexOf(vertex2),
+      ];
+    }).flat();
+
+    // just for testing
+    const Exit = this.allEdges.map(([vertex1, vertex2], index) => {
+        if (index === 0) {
+            return {
+                xr: vertex1.x,
+                yr: vertex1.y,
+                xl: vertex2.x,
+                yl: vertex2.y,
+            }
+        }
+    } )[0];
+
+    console.log("segmentPoints: ", segmentPoints);
+    console.log("pointOrder: ", pointOrder);
+
+    this.base.Domainpolygon.numberPoints = numberPoints;
+
+    this.base.Domainpolygon.segmentPoints = segmentPoints;
+
+    this.base.Domainpolygon.numberSegments = numberSegments;
+
+    this.base.Domainpolygon.pointOrder = pointOrder;
+
+    this.base.Exit[0] = Exit; // just for testing
+
+    return this.base;
+  }
+}
+
 export class AdjacencyMatrix {
   vertecies: Vertex[] = [];
   matrix: Matrix;
-  allCycles: Vertex[][] = [];
 
   constructor(size: number) {
     this.matrix = new Matrix(size);
@@ -247,19 +342,22 @@ export class AdjacencyMatrix {
 
   _findCycles() {
     let visited: boolean[] = new Array(this.vertecies.length).fill(false);
+    let allCycles: CycleGraph[] = [];
     let stack: Vertex[] = [];
     for (let i = 0; i < this.vertecies.length; i++) {
       if (!visited[i]) {
-        this._dfsForCycle(i, visited, -1, stack);
+        this._dfsForCycle(i, visited, -1, stack, allCycles);
       }
     }
+    return allCycles;
   }
 
   _dfsForCycle(
     vertexIndex: number,
     visited: boolean[],
     parentIndex: number,
-    stack: Vertex[]
+    stack: Vertex[],
+    allCycles: CycleGraph[]
   ) {
     visited[vertexIndex] = true;
     stack.push(this.vertecies[vertexIndex]);
@@ -267,7 +365,7 @@ export class AdjacencyMatrix {
     for (let i = 0; i < this.vertecies.length; i++) {
       if (this.matrix.getCell(vertexIndex, i)) {
         if (!visited[i]) {
-          this._dfsForCycle(i, visited, vertexIndex, stack);
+          this._dfsForCycle(i, visited, vertexIndex, stack, allCycles);
         } else if (i !== parentIndex) {
           // Cycle detected
           let cycleStartIndex = stack.indexOf(this.vertecies[i]);
@@ -278,7 +376,14 @@ export class AdjacencyMatrix {
                 .map((vertex) => vertex.toString())
                 .join(" -> ")}`
             );
-            this.allCycles.push(cycle);
+            let cycleGraph: CycleGraph = new CycleGraph(cycle[0], cycle, []);
+            for (let j = 0; j < cycle.length - 1; j++) {
+              cycleGraph.allEdges.push([cycle[j], cycle[j + 1]]);
+            }
+            // Connect the last vertex to the first to complete the cycle
+            cycleGraph.allEdges.push([cycle[cycle.length - 1], cycle[0]]);
+
+            allCycles.push(cycleGraph);
           }
         }
       }
