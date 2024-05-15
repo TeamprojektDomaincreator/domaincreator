@@ -192,10 +192,21 @@ export class DxfHandler {
             2, 3, 0, 0,
             5, 6, 8, 9,
         ];
-        const polyline = new AdjacencyMatrix(lines.length / 2);
-        polyline.addLines(lines);
+        const polyline = new AdjacencyMatrix(this.currentLayer.lines.length / 2);
+        polyline.addLines(this.currentLayer.lines);
         polyline.getConnectedComponents();
-        polyline._getGraphsArrayWithStartAndAllEdges();
+        polyline._findCycles();
+        const connectedComponents = polyline._getGraphsArrayWithStartAndAllEdges();
+        const ccAdjacencyMatrix = connectedComponents.map((cc) => cc.toAdjacencyMatrix())
+        console.log(ccAdjacencyMatrix)
+
+        ccAdjacencyMatrix.forEach((cc) => {
+            cc._findCycles();
+            console.log(cc.allCycles)
+        })
+
+
+        //polyline._findCycles();
     }
 
     /**
