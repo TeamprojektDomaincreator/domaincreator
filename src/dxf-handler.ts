@@ -1,13 +1,13 @@
-import { AdjacencyMatrix } from "./object-extractor";
+import {AdjacencyMatrix, ObjectExtracor} from './object-extractor';
 
 /**
  * Represents a DXF Layer
  */
 interface Layer {
-    name: string,
-    lines: number[],
-    minPoint: Float32Array,
-    maxPoint: Float32Array,
+    name: string;
+    lines: number[];
+    minPoint: Float32Array;
+    maxPoint: Float32Array;
 }
 
 /* Constants */
@@ -21,12 +21,12 @@ const CODE_21 = ' 21';
 
 /**
  * Handles DXF Files.
- * 
+ *
  * @description
  * The DxfHandler is able to decode all lines from a DXF and store them on a per-layer basis.
  * To avoid unnecessary copying, all decoded lines are stored inside the handler itself.
  * It also provides convenience methods to quickly move through the layers.
- * 
+ *
  * @example
  * ```js
  * const handler = new DxfHandler();
@@ -37,7 +37,6 @@ const CODE_21 = ' 21';
  * ```
  */
 export class DxfHandler {
-
     layers: Layer[] = [];
 
     #currentIndex = 0;
@@ -54,7 +53,7 @@ export class DxfHandler {
      *
      * @param {File} file - A File object representing the DXF file to be loaded.
      *
-     * @returns A empty promise that resolves once the entire file has been parsed. 
+     * @returns A empty promise that resolves once the entire file has been parsed.
      *
      * @description
      * This function reads the provided DXF file using a FileReader and then splits the file text into individual entities. Each entity is parsed and processed as follows:
@@ -93,7 +92,7 @@ export class DxfHandler {
         let time = performance.now();
 
         /* Windows and Mac/Linux handle return differently */
-        const returnChar = fileText.indexOf("\r") === -1 ? '\n' : '\r';
+        const returnChar = fileText.indexOf('\r') === -1 ? '\n' : '\r';
         const entity = ENTITY + returnChar;
         const line = LINE + returnChar;
         const nameID = CODE_8 + returnChar;
@@ -102,9 +101,9 @@ export class DxfHandler {
         const endX = CODE_11 + returnChar;
         const endY = CODE_21 + returnChar;
 
-        let entityCount = 0
+        let entityCount = 0;
         let temp = 0;
-        let layerName = "";
+        let layerName = '';
         let arrayRef;
 
         let x1, y1, x2, y2;
@@ -114,8 +113,8 @@ export class DxfHandler {
             /* No Entities anymore */
             if (i === -1) break;
             entityCount++;
-            temp = fileText.indexOf('AcDb', i + entity.length)
-            if (fileText.substring(temp, temp + line.length ) !== line) continue;
+            temp = fileText.indexOf('AcDb', i + entity.length);
+            if (fileText.substring(temp, temp + line.length) !== line) continue;
 
             i = fileText.indexOf(nameID, i);
             /* Skip until next entry */
@@ -136,13 +135,23 @@ export class DxfHandler {
             y2 = fileText.indexOf('\n', y2) + 1;
 
             arrayRef = this.layers[temp].lines;
-            arrayRef.push(parseFloat(fileText.substring(x1, fileText.indexOf(returnChar, x1))));
-            arrayRef.push(parseFloat(fileText.substring(y1, fileText.indexOf(returnChar, y1))));
-            arrayRef.push(parseFloat(fileText.substring(x2, fileText.indexOf(returnChar, x2))));
-            arrayRef.push(parseFloat(fileText.substring(y2, fileText.indexOf(returnChar, y2))));
+            arrayRef.push(
+                parseFloat(fileText.substring(x1, fileText.indexOf(returnChar, x1)))
+            );
+            arrayRef.push(
+                parseFloat(fileText.substring(y1, fileText.indexOf(returnChar, y1)))
+            );
+            arrayRef.push(
+                parseFloat(fileText.substring(x2, fileText.indexOf(returnChar, x2)))
+            );
+            arrayRef.push(
+                parseFloat(fileText.substring(y2, fileText.indexOf(returnChar, y2)))
+            );
         }
         time = performance.now() - time;
-        console.log(`DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`)
+        console.log(
+            `DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`
+        );
 
         /* Find the minimum and maximum Points */
         for (let i = 0; i < this.layers.length; i++) {
@@ -153,15 +162,15 @@ export class DxfHandler {
             minPoint[1] = lines[1];
             maxPoint[0] = lines[0];
             maxPoint[1] = lines[1];
-          
+
             for (let j = 0; j < lines.length; j += 2) {
-              minPoint[0] = Math.min(minPoint[0], lines[j]);
-              minPoint[1] = Math.min(minPoint[1], lines[j+1]);
-          
-              maxPoint[0] = Math.max(maxPoint[0], lines[j]);
-              maxPoint[1] = Math.max(maxPoint[1], lines[j+1]);
+                minPoint[0] = Math.min(minPoint[0], lines[j]);
+                minPoint[1] = Math.min(minPoint[1], lines[j + 1]);
+
+                maxPoint[0] = Math.max(maxPoint[0], lines[j]);
+                maxPoint[1] = Math.max(maxPoint[1], lines[j + 1]);
             }
-          
+
             this.layers[i].minPoint = minPoint;
             this.layers[i].maxPoint = maxPoint;
         }
@@ -169,10 +178,10 @@ export class DxfHandler {
 
     /**
      * Gets the index of a layer with a certain name or creates a new layer.
-     * 
+     *
      * @param layername Name of the layer to get the index of.
      * @returns Index of the layer.
-     * 
+     *
      * @warning This function is for internal use only!
      */
     _getOrAddLayerID(layername: string): number {
@@ -180,27 +189,57 @@ export class DxfHandler {
         for (let i = this.layers.length - 1; i >= 0; i--) {
             if (this.layers[i].name === layername) return i;
         }
-        return this.layers.push({name: layername, lines: [], minPoint: new Float32Array([0, 0]), maxPoint: new Float32Array([0, 0])}) - 1;
+        return (
+            this.layers.push({
+                name: layername,
+                lines: [],
+                minPoint: new Float32Array([0, 0]),
+                maxPoint: new Float32Array([0, 0]),
+            }) - 1
+        );
     }
 
     /**
      * Extracts polylines from a single layer or group of layers.
-     * 
+     *
      * @param layerIndices List of indices that the user selected for extraction.
-     * @returns A list of of Float32Arrays that each represent a polyline of a object. 
+     * @returns A list of of Float32Arrays that each represent a polyline of a object.
      */
-    extractObjects(): void {
-        const lines = [0, 0, 1, 1, 1, 1, 2, 3, 2, 3, 0, 0, 5, 6, 8,9];
-        const polyline = new AdjacencyMatrix(this.currentLayer.lines.length / 2);
-        polyline.addLines(this.currentLayer.lines);
+    extractObjects(): number[] {
+        const extractor = new ObjectExtracor();
+        const data = this._scaleData();
+        extractor.addLines(data[0]);
+        let lines = extractor.extract();
+        lines = lines.map((x) => {
+            return x / data[1];
+        });
+        return lines;
+    }
+
+    _scaleData(): [number[], number] {
+        const range = this.currentLayer.maxPoint[0] - this.currentLayer.minPoint[0];
+
+        // Avoid division by zero
+        if (range === 0) {
+            return [this.currentLayer.lines, 1]; // No scaling needed
+        }
+
+        const scaleFactor = 1 / range;
+
+        console.log(scaleFactor);
+        const res: number[] = [];
+        for (let i = 0; i < this.currentLayer.lines.length; i++) {
+            res.push(this.currentLayer.lines[i] * scaleFactor);
+        }
+        return [res, scaleFactor];
     }
 
     /**
      * Retrieves the current layer.
-     * 
+     *
      *  @note
      * The returned array is flattened for cache coherency. Iterate over it in steps of 4 to access individual line coordinates.
-     * 
+     *
      *  @example
      * ```js
      * const list = handler.currentLayer.lines;
@@ -214,11 +253,17 @@ export class DxfHandler {
      * }
      * ```
      * @see Layer
-     * 
+     *
      *  @returns An array of numbers, aligned as follows: [start_x0, start_y0, end_x1, end_y1, ...]
      */
     get currentLayer(): Layer {
-        if (this.layers.length === 0) return {name: "", lines: [], minPoint: new Float32Array([0, 0]), maxPoint: new Float32Array([0, 0])};
+        if (this.layers.length === 0)
+            return {
+                name: '',
+                lines: [],
+                minPoint: new Float32Array([0, 0]),
+                maxPoint: new Float32Array([0, 0]),
+            };
         return this.layers[this.#currentIndex];
     }
 
@@ -227,7 +272,8 @@ export class DxfHandler {
     }
 
     moveToPrevLayer() {
-        this.#currentIndex = this.#currentIndex === 0 ? this.layers.length - 1 : this.#currentIndex - 1;
+        this.#currentIndex =
+            this.#currentIndex === 0 ? this.layers.length - 1 : this.#currentIndex - 1;
     }
 
     /**
