@@ -31,7 +31,7 @@ extractButton!.addEventListener('click', () => {
 
     mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     mainCanvasCtx.lineWidth = 1;
-    
+
     while (count < lines.length) {
         // Generate a random color
         const randomColor =
@@ -121,6 +121,18 @@ function renderLayerSelection(layers: Layer[]) {
 }
 
 function _addLayerTileToUI(layer: Layer, layerId: number) {
+    function handleLayerSelected(isSelected: boolean) {
+        if (isSelected) {
+            myCheckbox.checked = true;
+            selectedLayers.push(layerId);
+            layerCanvas.classList.add('selected');
+        } else {
+            myCheckbox.checked = false;
+            selectedLayers = selectedLayers.filter((id) => id !== layerId);
+            layerCanvas.classList.remove('selected');
+        }
+    }
+
     var parentDiv = document.querySelector('#layer-col');
 
     let layerTile = document.createElement('div');
@@ -134,26 +146,27 @@ function _addLayerTileToUI(layer: Layer, layerId: number) {
     let flexRow = document.createElement('div');
     flexRow.setAttribute('class', 'flex-row');
     flexRow.setAttribute('style', `gap: 1px;`);
-    
+
     let layerCanvas = document.createElement('canvas');
     layerCanvas.setAttribute('id', `layer-canvas${layerId}`);
     layerCanvas.setAttribute('width', '200');
     layerCanvas.setAttribute('height', '120');
+
+    layerCanvas.addEventListener('click', function () {
+        const isSelected = selectedLayers.includes(layerId);
+        handleLayerSelected(!isSelected);
+        updateCanvas();
+    });
 
     let myCheckbox = document.createElement('input');
     myCheckbox.setAttribute('type', 'checkbox');
     myCheckbox.setAttribute('id', 'myCheckbox');
     myCheckbox.checked = selectedLayers.includes(layerId) ? true : false;
     myCheckbox.addEventListener('change', function () {
-        if (this.checked) {
-            selectedLayers.push(layerId);
-        } else {
-            selectedLayers = selectedLayers.filter((id) => id !== layerId);
-        }
+        handleLayerSelected(myCheckbox.checked);
         updateCanvas();
     });
 
-    // Attach to dom
     flexRow.appendChild(layerCanvas);
     flexRow.appendChild(myCheckbox);
     layerTile.appendChild(layerName);
