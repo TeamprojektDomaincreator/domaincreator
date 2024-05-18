@@ -96,18 +96,27 @@ async function handleFileSelect(event: any) {
     const file = event.target.files[0];
     if (!file) return;
     await dxfHandler.loadDxf(file);
-    scaleFactor = 1;
+    resetState();
     renderLayerSelection(dxfHandler.layers);
     updateCanvas();
 }
 
+function resetState() {
+    scaleFactor = 1;
+    selectedLayers = [];
+}
+
 function renderLayerSelection(layers: Layer[]) {
-    // reset the layer column
+    // reset the layer selection
     var parentDiv = document.querySelector('#layer-col');
     parentDiv!.innerHTML = '';
 
     layers.forEach((layer, index) => {
         _addLayerTileToUI(layer, index);
+        const canvas = document.querySelector(`#layer-canvas${index}`);
+        if (canvas) {
+            renderLayer(layer, canvas as HTMLCanvasElement);
+        }
     });
 }
 
@@ -125,14 +134,11 @@ function _addLayerTileToUI(layer: Layer, layerId: number) {
     let flexRow = document.createElement('div');
     flexRow.setAttribute('class', 'flex-row');
     flexRow.setAttribute('style', `gap: 1px;`);
-
+    
     let layerCanvas = document.createElement('canvas');
-    layerCanvas.setAttribute('id', `layerCanvas${layerId}`);
+    layerCanvas.setAttribute('id', `layer-canvas${layerId}`);
     layerCanvas.setAttribute('width', '200');
     layerCanvas.setAttribute('height', '120');
-
-    const canvas = layerCanvas as HTMLCanvasElement;
-    renderLayer(layer, canvas);
 
     let myCheckbox = document.createElement('input');
     myCheckbox.setAttribute('type', 'checkbox');
@@ -147,14 +153,12 @@ function _addLayerTileToUI(layer: Layer, layerId: number) {
         updateCanvas();
     });
 
+    // Attach to dom
     flexRow.appendChild(layerCanvas);
     flexRow.appendChild(myCheckbox);
-
     layerTile.appendChild(layerName);
     layerTile.appendChild(flexRow);
-
     document.body.appendChild(layerTile);
-
     parentDiv?.appendChild(layerTile);
 }
 
@@ -197,38 +201,6 @@ function renderLayer(layer: Layer, canvas: HTMLCanvasElement, scaleFactor = 1) {
 
 function updateCanvas() {
     var mergedLayer = dxfHandler.mergeLayers(selectedLayers);
-
     renderLayer(mergedLayer, mainCanvas, scaleFactor);
-    // mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-    // mainCanvasCtx.strokeStyle = 'black';
-    // mainCanvasCtx.lineWidth = 1;
-    // const listRef = mergedLayer.lines;
-    // const trans_x = -1 * mergedLayer.minPoint[0];
-    // const trans_y = -1 * mergedLayer.minPoint[1];
-    // let count = 0;
-    // let x1, y1, x2, y2;
-
-    // // Find the maximum x and y values in the layer
-    // let maxX = Math.max(...listRef.filter((_, index) => index % 2 === 0));
-    // let maxY = Math.max(...listRef.filter((_, index) => index % 2 !== 0));
-
-    // // Calculate the scale factors for the x and y dimensions
-    // let scaleX = mainCanvas.width / maxX;
-    // let scaleY = mainCanvas.height / maxY;
-
-    // // Use the smaller scale factor to avoid stretching
-    // let scale = Math.min(scaleX, scaleY);
-
-    // while (count < listRef.length) {
-    //     x1 = listRef[count];
-    //     y1 = listRef[count + 1];
-    //     x2 = listRef[count + 2];
-    //     y2 = listRef[count + 3];
-    //     mainCanvasCtx.beginPath();
-    //     mainCanvasCtx.moveTo((x1 + trans_x) * scale * scaleFactor, (y1 + trans_y) * scale * scaleFactor);
-    //     mainCanvasCtx.lineTo((x2 + trans_x) * scale * scaleFactor, (y2 + trans_y) * scale * scaleFactor);
-    //     mainCanvasCtx.stroke();
-    //     count += 4;
-    // }
     numEntities!.innerText = (mergedLayer.lines.length / 4).toString();
 }
