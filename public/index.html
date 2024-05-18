@@ -1,19 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXF-Playground</title>
-</head>
-<body>
-    <canvas id="myCanvas" width="800" height="600"></canvas>
-    <button id="drawButton">Load File</button>
-    <button id="scaleUpButton">Scale +</button>
-    <button id="scaleDownButton">Scale -</button>
-    <button id="goBackLayer">Prev</button>
-    <button id="advanceLayer">Next</button>
-    <input type="file" id="fileInput" style="display: none;">
-    <div>Number of lines:<span id="numberOfEntities">-</span></div>
-    <script src="main.js"></script>
-</body>
-</html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DXF-Playground</title>
+    </head>
+    <body>
+        <div class="flex-row">
+            <div class="flex-col">
+                <H2>Selected layers preview</H2>
+                <canvas id="myCanvas" width="800" height="600"></canvas>
+                <div class="flex-row">
+                    <button id="drawButton">Load File</button>
+                    <button id="scaleDownButton">Scale -</button>
+                    <button id="scaleUpButton">Scale +</button>
+                    <button id="extract">Extract</button>
+                    <input type="file" id="fileInput" style="display: none;">
+                </div>
+                <div>Number of lines:<span id="numberOfEntities">-</span></div>
+            </div>
+            <div>
+                <H2>Layer Selction</H2>
+                <div class="sized-box">
+                    <div id="layer-col" class="grid-container">
+                        <!-- 
+                            Layer selection is inserted here
+                        -->
+                    </div>
+                </div>
+            </div>
+            <script src="main.js"></script>
+        </body>
+        <style>
+    .grid-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        
+    }
+
+    .sized-box {
+        max-height: 600px;
+        height: 600px;
+        overflow-y: auto;
+    }
+
+    .flex-row {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .flex-col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    canvas {
+        border: 1px solid black;
+    }
+</style>
+    </html>
