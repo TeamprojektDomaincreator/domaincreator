@@ -187,13 +187,9 @@ function renderLayer(layer: Layer, canvas: HTMLCanvasElement, scaleFactor = 1) {
     let count = 0;
     let x1, y1, x2, y2;
 
-    // Find the maximum x and y values in the layer
-    let maxX = Math.max(...listRef.filter((_, index) => index % 2 === 0));
-    let maxY = Math.max(...listRef.filter((_, index) => index % 2 !== 0));
-
     // Calculate the scale factors for the x and y dimensions
-    let scaleX = canvas.width / maxX;
-    let scaleY = canvas.height / maxY;
+    let scaleX = canvas.width / layer.maxPoint[0];
+    let scaleY = canvas.height / layer.maxPoint[1];
 
     // Use the smaller scale factor to avoid stretching
     let scale = Math.min(scaleX, scaleY);

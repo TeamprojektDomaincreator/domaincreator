@@ -213,19 +213,18 @@ export class DxfHandler {
         }
         return [res, scaleFactor];
     }
+    
+   mergeLayers(layerIndices: number[]) {
+    return layerIndices.reduce((mergedLayer, currentIndex) => {
+        const layer = this.layers[currentIndex];
+        mergedLayer.lines.push(...layer.lines);
 
-    mergeLayers(layerIndices: number[]) {
-        const mergedLayer: Layer = {
-            name: 'Merged Layer',
-            lines: [],
-            minPoint: new Float32Array([0, 0]),
-            maxPoint: new Float32Array([0, 0]),
-        };
+        mergedLayer.minPoint[0] = Math.min(mergedLayer.minPoint[0], layer.minPoint[0]);
+        mergedLayer.minPoint[1] = Math.min(mergedLayer.minPoint[1], layer.minPoint[1]);
+        mergedLayer.maxPoint[0] = Math.max(mergedLayer.maxPoint[0], layer.maxPoint[0]);
+        mergedLayer.maxPoint[1] = Math.max(mergedLayer.maxPoint[1], layer.maxPoint[1]);
 
-        for (const index of layerIndices) {
-            const layer = this.layers[index];
-            mergedLayer.lines.push(...layer.lines);
-        }
         return mergedLayer;
-    }
+    }, this.layers[layerIndices[0]]);
+}
 }
