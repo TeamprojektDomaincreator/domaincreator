@@ -1,4 +1,4 @@
-import {AdjacencyMatrix, ObjectExtracor} from './object-extractor';
+import {ObjectExtractor} from './object-extractor';
 
 /**
  * Represents a DXF Layer
@@ -206,11 +206,11 @@ export class DxfHandler {
      * @returns A list of of Float32Arrays that each represent a polyline of a object.
      */
     extractObjects(): number[] {
-        const extractor = new ObjectExtracor();
+        const extractor = new ObjectExtractor();
         const data = this._scaleData();
         extractor.addLines(data[0]);
         let lines = extractor.extract();
-        lines = lines.map((x) => {
+        lines = lines.map((x: number) => {
             return x / data[1];
         });
         return lines;
