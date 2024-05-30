@@ -193,6 +193,7 @@ export class CycleGraph extends Graph {
                 yr: vertex1.y,
                 xl: vertex2.x,
                 yl: vertex2.y,
+                weight: 1,
             }
         }
     } )[0];
