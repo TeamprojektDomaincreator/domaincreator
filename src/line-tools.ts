@@ -10,17 +10,22 @@ const SORT_BY_Y = (p1: Point, p2: Point) => {
     return 0;
 };
 
-const ROUND_PRECISION = 15;
-const EPSILON = 0.001;
-const MAX_SLOPE = 200338061715;
+const ROUND_PRECISION = 4;
+const EPSILON = 0.00001;
+const MAX_SLOPE = 9999;
+
+function truncateToThreeDecimals(value: number): number {
+    const factor = 10000; // 10^3 to shift the decimal point three places
+    return Math.trunc(value * factor) / factor;
+}
 
 export class Point {
     x: number;
     y: number;
 
     constructor(x: number, y: number) {
-        this.x = parseFloat(x.toPrecision(ROUND_PRECISION));
-        this.y = parseFloat(y.toPrecision(ROUND_PRECISION));
+        this.x = truncateToThreeDecimals(x); 
+        this.y = truncateToThreeDecimals(y); 
     }
 
     equals(p: Point): boolean {
@@ -239,10 +244,17 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment): LineSegment[] | und
     const x = (b2 - b1) / (l1_slope - l2_slope);
     const y = l1_slope * x + b1;
     const intersection = new Point(x, y);
-    const lambda = (intersection.x - l2.start.x) / (l2.end.x - l2.start.x);
+    let lambdaX = (intersection.x - l2.start.x) / (l2.end.x - l2.start.x);
+    let lambdaY = (intersection.y - l2.start.y) / (l2.end.y - l2.start.y);
+    if (Math.abs(lambdaX -lambdaY) > EPSILON) return;
     /* Test if intersection is in line segment */
-    if (lambda < 0 || lambda > 1) return;
+    if (lambdaX < 0 || lambdaY > 1) return;
 
+    lambdaX = (intersection.x - l1.start.x) / (l1.end.x - l1.start.x);
+    lambdaY = (intersection.y - l1.start.y) / (l1.end.y - l1.start.y);
+    if (Math.abs(lambdaX -lambdaY) > EPSILON) return;
+    /* Test if intersection is in line segment */
+    if (lambdaX < 0 || lambdaY > 1) return;
     return splitLines(l1, l2, intersection);
 }
 
@@ -308,7 +320,10 @@ export function sweepLine(lines: number[]): number[] {
     const result: number[] = [];
     let sweepPos = sortedSegments[0].start.x;
     for (const segment of sortedSegments) {
-        if (iterationCount > iterationLimit) break;
+        if (iterationCount > iterationLimit) {
+            console.warn(`SweepLine: Ran over limit: ${iterationCount}`)
+            break;
+        }
         sweepPos = segment.start.x;
         let wasAdded = false;
         /* Remove all surpassed line segments */
@@ -344,7 +359,6 @@ export function sweepLine(lines: number[]): number[] {
         });
         if (!wasAdded) activeSegments.add(segment);
     }
-    console.log(`SweepLine: Took ${iterationCount} iterations to split all lines.`)
 
     /* Add all leftovers */
     activeSegments.forEach((line: LineSegment) => {

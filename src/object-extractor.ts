@@ -51,9 +51,11 @@ class SpaceEfficientMatrix {
         return [row, col];
     }
 
+
     getAllConnectedGraphs(points: Point[]): LineSegment[][]{
         let time = performance.now();
         const arr = Array.from(this.cells);
+        if (arr[0] === 0) arr.shift();
         const res: LineSegment[][] = [];
         const sets: Set<number>[] = [];
         let cell: number | undefined;
@@ -90,7 +92,7 @@ class SpaceEfficientMatrix {
             } while (found);
         }
         time = performance.now() - time;
-        console.log(`Looped over ${totalLoopCount} elements, for ${this.size} amount of points. This took: ${time} ms`)
+        console.log(`Looped over ${totalLoopCount} elements, for ${points.length} amount of points. This took: ${time} ms`)
 
         // @todo: try to merge all found graphs
 
