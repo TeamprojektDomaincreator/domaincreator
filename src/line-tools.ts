@@ -31,6 +31,10 @@ export class Point {
     equals(p: Point): boolean {
         return this.x === p.x && this.y === p.y;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y})`;
+    }
 }
 
 export class LineSegment {
@@ -58,6 +62,10 @@ export class LineSegment {
 
     equals(line: LineSegment): boolean {
         return this.start.equals(line.start) && this.end.equals(line.end);
+    }
+
+    toString(): string {
+        return `${this.start.toString()} -> ${this.end.toString()}`;
     }
 }
 

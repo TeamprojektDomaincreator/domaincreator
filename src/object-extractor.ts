@@ -1,3 +1,4 @@
+import { findCycles } from './cycles';
 import {LineSegment, Point, sweepLine} from './line-tools';
 
 /**
@@ -7,7 +8,7 @@ import {LineSegment, Point, sweepLine} from './line-tools';
  * and getting the contents of the matrix. So be sure to use it only when a lot of
  * cells will remain unset.
  */
-class SpaceEfficientMatrix {
+export class SpaceEfficientMatrix {
     cells: Set<number> = new Set();
     size: number;
 
@@ -100,7 +101,7 @@ class SpaceEfficientMatrix {
     }
 }
 
-class UniquePoints {
+export class UniquePoints {
     points: Point[] = [];
 
     addPoint(p: Point) {
@@ -184,6 +185,21 @@ export class ObjectExtractor {
             matrix.setCell(index2, index1);
         }
         const indices = matrix.getAllConnectedGraphs(this.points.points);
+         const allCycles: LineSegment[][] = [];
+        indices.forEach((i) => {
+            const cycle = findCycles(i);
+            cycle.forEach((c) => {
+                allCycles.push(c);
+            })
+
+            console.log('allCycles: ', allCycles);
+        })
+
+        console.log('allCycles: ', allCycles);
+
+
+
+
         const res2: number[][] = [];
         let index = -1;
         indices.forEach((i) => {
