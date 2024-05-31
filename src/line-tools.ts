@@ -10,13 +10,17 @@ const SORT_BY_Y = (p1: Point, p2: Point) => {
     return 0;
 };
 
+const ROUND_PRECISION = 15;
+const EPSILON = 0.001;
+const MAX_SLOPE = 200338061715;
+
 export class Point {
     x: number;
     y: number;
 
     constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
+        this.x = parseFloat(x.toPrecision(ROUND_PRECISION));
+        this.y = parseFloat(y.toPrecision(ROUND_PRECISION));
     }
 
     equals(p: Point): boolean {
@@ -74,15 +78,21 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment): LineSegment[] | und
      */
     let l1_slope = (l1.end.y - l1.start.y) / (l1.end.x - l1.start.x);
     let l2_slope = (l2.end.y - l2.start.y) / (l2.end.x - l2.start.x);
+    //console.log(`l1 = ${l1_slope} l2 = ${l2_slope} diff = ${l1_slope - l2_slope}`)
 
     /* At least one of the segments is a point, i.o invalid */
     if (Number.isNaN(l1_slope) || Number.isNaN(l2_slope)) return;
+    if (Math.abs(l1_slope) < EPSILON ) l1_slope = 0;
+    if (Math.abs(l1_slope) > MAX_SLOPE) l1_slope = Infinity;
+    if (Math.abs(l2_slope) < EPSILON ) l2_slope = 0;
+    if (Math.abs(l2_slope) > MAX_SLOPE) l2_slope = Infinity;
+    //console.log(`l1 = ${l1_slope} l2 = ${l2_slope} diff = ${l1_slope - l2_slope}`)
 
     /* Lines are parallel or overlap */
-    if (l1_slope === l2_slope) {
+    if (l1_slope === l2_slope || Math.abs(l1_slope - l2_slope) < EPSILON) {
         if (l1_slope === 0) {
             if (l1.start.y !== l2.start.y) return;
-            if (l1.end.x <= l2.start.x || l2.end.x <= l1.start.x) return;
+            if (l1.end.x <= l2.start.x || l1.start.x <= l2.end.x) return;
             const res: LineSegment[] = [];
             const points: Point[] = [l1.start, l1.end];
             if (!l2.start.equals(l1.start) && !l2.start.equals(l1.end))
@@ -108,13 +118,29 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment): LineSegment[] | und
             }
             return res;
         }
+        if (l2.start.x < l1.start.x) {
+            const temp = l1;
+            l1 = l2;
+            l2 = temp;
+            const temp_slope = l1_slope;
+            l1_slope = l2_slope;
+            l2_slope = temp_slope;
+        }
 
-        /* Test if line segments are on the same line */
-        const b1 = l1.start.y - l1_slope * l1.start.x;
-        if (l2.start.y !== l1_slope * l2.start.x + b1) return;
+        /* Test l2.start */
+        let lambdaX = (l2.start.x - l1.start.x) / (l1.end.x - l1.start.x);
+        let lambdaY = (l2.start.y - l1.start.y) / (l1.end.y - l1.start.y);
 
-        /* Test if line segments are disjunct */
-        if (l1.end.x < l2.start.x && l2.end.x < l1.start.x) return; // @todo: Brain through this to check if it actaully works
+        if (Math.abs(lambdaX - lambdaY) > EPSILON) {
+            return;
+        }
+        if (lambdaX >= 1 || lambdaX <= 0) {
+            lambdaX = (l2.end.x - l1.start.x) / (l1.end.x - l1.start.x);
+            lambdaY = (l2.end.y - l1.start.y) / (l1.end.y - l1.start.y);
+            if (lambdaX >= 1 || lambdaX <= 0) {
+                return;
+            }
+        } 
 
         /* Since we know that lines intersect, we just take all points, remove duplicates and connect them in sorted order */
         const res: LineSegment[] = [];
@@ -125,6 +151,8 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment): LineSegment[] | und
         for (let i = 0; i < points.length - 1; i++) {
             res.push(new LineSegment(points[i], points[i + 1]));
         }
+        //console.log(res)
+
         return res;
     }
 
@@ -168,11 +196,12 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment): LineSegment[] | und
         const b2 = l2.start.y - l2_slope * l2.start.x;
         const x2 = (l1.start.y - b2) / l2_slope;
         const intersection = new Point(x2, l1.start.y);
-        if (intersection.x < l1.start.x || intersection.x > l1.end.x) return;
+        if (intersection.x <= l1.start.x || intersection.x >= l1.end.x) return;
         const lambda = (intersection.x - l2.start.x) / (l2.end.x - l2.start.x);
         /* Intersection is not in line segment */
         if (lambda < 0 || lambda > 1) return;
 
+        //console.log(`l1 = 0 l2 = ${l2_slope - Number.MAX_VALUE}`)
         return splitLines(l1, l2, intersection);
     }
 
@@ -200,6 +229,7 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment): LineSegment[] | und
         /* Test if intersection is in line segment */
         if (lambda < 0 || lambda > 1) return;
 
+        //console.log(`l1 = infinty l2 = ${l2.start.y}, ${l2.end.y}`)
         return splitLines(l1, l2, intersection);
     }
 
@@ -255,6 +285,8 @@ function splitLines(l1: LineSegment, l2: LineSegment, intersection: Point): Line
 // fix all bugs in intersect first
 export function sweepLine(lines: number[]): number[] {
     const sortedSegments: LineSegment[] = [];
+    let iterationCount = 0;
+    const iterationLimit = 5000000;
 
     for (let i = 0; i < lines.length; i += 4) {
         sortedSegments.push(
@@ -276,6 +308,7 @@ export function sweepLine(lines: number[]): number[] {
     const result: number[] = [];
     let sweepPos = sortedSegments[0].start.x;
     for (const segment of sortedSegments) {
+        if (iterationCount > iterationLimit) break;
         sweepPos = segment.start.x;
         let wasAdded = false;
         /* Remove all surpassed line segments */
@@ -292,7 +325,9 @@ export function sweepLine(lines: number[]): number[] {
         }
         const addQueue: LineSegment[] = [];
         const removeQueue: LineSegment[] = [];
+        //console.log(activeSegments.size)
         for (const activeSegment of activeSegments) {
+            iterationCount++
             const split = splitOnIntersect(segment, activeSegment);
             if (!split) continue;
             removeQueue.push(activeSegment);
@@ -309,6 +344,7 @@ export function sweepLine(lines: number[]): number[] {
         });
         if (!wasAdded) activeSegments.add(segment);
     }
+    console.log(`SweepLine: Took ${iterationCount} iterations to split all lines.`)
 
     /* Add all leftovers */
     activeSegments.forEach((line: LineSegment) => {

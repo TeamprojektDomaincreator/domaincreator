@@ -207,17 +207,37 @@ export class DxfHandler {
      */
     extractObjects(): number[] {
         const extractor = new ObjectExtractor();
+        /*
         const data = this._scaleData();
         extractor.addLines(data[0]);
         let lines = extractor.extract();
         lines = lines.map((x: number) => {
             return x / data[1];
         });
-        return lines;
+        */
+        extractor.addLines(this.currentLayer.lines);
+        return extractor.extract();
+    }
+
+    extractObjects2(): number[][] {
+        const extractor = new ObjectExtractor();
+        /*
+        const data = this._scaleData();
+        extractor.addLines(data[0]);
+        let lines = extractor.extract();
+        lines = lines.map((x: number) => {
+            return x / data[1];
+        });
+        */
+        extractor.addLines(this.currentLayer.lines);
+        return extractor.extract2();
     }
 
     _scaleData(): [number[], number] {
-        const range = this.currentLayer.maxPoint[0] - this.currentLayer.minPoint[0];
+        const rangex = this.currentLayer.maxPoint[0] - this.currentLayer.minPoint[0];
+        const rangey = this.currentLayer.maxPoint[1] - this.currentLayer.minPoint[1];
+        const range = Math.max(rangex, rangey);
+        console.log(`Range is: ${range}`)
 
         // Avoid division by zero
         if (range === 0) {
