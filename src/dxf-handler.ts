@@ -1,5 +1,3 @@
-import { ObjectExtracor} from './object-extractor';
-
 /**
  * Represents a DXF Layer
  */
