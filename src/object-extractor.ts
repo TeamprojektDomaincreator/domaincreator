@@ -1,5 +1,6 @@
 import { findCycles } from './cycles';
 import {LineSegment, Point, sweepLine} from './line-tools';
+import { findOutlineOfConnectedCyclesLines } from './outline';
 
 /**
  * Boolean Matrix that only requires memory for cells that have been set.
@@ -155,6 +156,25 @@ export class UniquePoints {
 
         return -1; // Point not found
     }
+
+    getPointsSortedByY(): Point[] {
+        return this.points.sort((a, b) => {
+            if (a.y < b.y) {
+                return -1;
+            }
+            if (a.y > b.y) {
+                return 1;
+            }
+            // If y values are equal, sort by x
+            if (a.x < b.x) {
+                return -1;
+            }
+            if (a.x > b.x) {
+                return 1;
+            }
+            return 0;
+        });
+    }
 }
 
 export class ObjectExtractor {
@@ -185,7 +205,7 @@ export class ObjectExtractor {
             matrix.setCell(index2, index1);
         }
         const indices = matrix.getAllConnectedGraphs(this.points.points);
-         const allCycles: LineSegment[][] = [];
+        const allCycles: LineSegment[][] = [];
         indices.forEach((i) => {
             const cycle = findCycles(i);
             cycle.forEach((c) => {
@@ -195,7 +215,11 @@ export class ObjectExtractor {
             console.log('allCycles: ', allCycles);
         })
 
-        console.log('allCycles: ', allCycles);
+        const outlines = findOutlineOfConnectedCyclesLines(allCycles)
+        
+        const res3 = outlines.map((o) => {
+            return [o.start.x, o.start.y, o.end.x, o.end.y];
+        })
 
 
 
@@ -210,7 +234,7 @@ export class ObjectExtractor {
             }
         })
         matrix.logMemorySavings();
-        return res2;
+        return res3;
 
     }
 
@@ -241,4 +265,92 @@ export class ObjectExtractor {
         matrix.logMemorySavings();
         return res;
     }
+}
+
+
+function linesToEflowFormat(lines: LineSegment[], points: Point[]) {
+    const base = {
+        name: "Video2",
+        Scenario: {
+          charLength: 34,
+          charDensity: 8,
+          charVelocity: 1.34,
+          startPersons: 100,
+          randPersons: 1,
+          maxTime: 20,
+        },
+        Fundamentaldiagramm: 5,
+        Infection: {
+          percentInfected: 0.05,
+          criticalDistance: 0.5,
+          infectionRate: 65,
+          percentRemoved: 0.1,
+          resistanceTime: 1,
+          moveMode: 0,
+        },
+        Agents: 1,
+        Measurementstations: [],
+        Entrance: [],
+        Exit: [] as any[],
+        Attractors: [],
+        SubdomainsFD: [],
+        SubdomainsRhoInit: [],
+        Refinement: {
+          decompositionLevel: "medium",
+          localRefinement: 0,
+          localMarkMethod: 0,
+          globalRefinement: 0,
+        },
+        Domainpolygon: {
+          numberPoints: 0,
+          segmentPoints: [] as number[],
+          numberSegments: 0,
+          pointOrder: [] as number[],
+          numberHoles: 0,
+          holes: [],
+        },
+        Grid: {},
+      };
+    
+        const numberPoints = points.length;
+        const numberSegments = points.length;
+    
+        const segmentPoints = points
+          .map((p) => p.toLinePoint())
+          .flat();
+    
+        const pointOrder = lines.map(({start, end}) => {
+          return [
+            points.indexOf(start),
+            points.indexOf(end),
+          ];
+        }).flat();
+    
+        // just for testing
+        const Exit = lines.map(({start, end}, index) => {
+            if (index === 0) {
+                return {
+                    xr: start.x,
+                    yr: start.y,
+                    xl: end.x,
+                    yl: end.y,
+                    weight: 1,
+                }
+            }
+        } )[0];
+    
+        console.log("segmentPoints: ", segmentPoints);
+        console.log("pointOrder: ", pointOrder);
+    
+        base.Domainpolygon.numberPoints = numberPoints;
+    
+        base.Domainpolygon.segmentPoints = segmentPoints;
+    
+        base.Domainpolygon.numberSegments = numberSegments;
+    
+        base.Domainpolygon.pointOrder = pointOrder;
+    
+        base.Exit[0] = Exit; // just for testing
+    
+        return base;
 }
