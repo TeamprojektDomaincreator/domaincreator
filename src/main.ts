@@ -115,7 +115,7 @@ function renderLayerSelection(layers: Layer[]) {
         _addLayerTileToUI(layer, index);
         const canvas = document.querySelector(`#layer-canvas${index}`);
         if (canvas) {
-            renderLayer(layer, canvas as HTMLCanvasElement);
+            renderLayer(canvas as HTMLCanvasElement, layer);
         }
     });
 }
@@ -175,41 +175,44 @@ function _addLayerTileToUI(layer: Layer, layerId: number) {
     parentDiv?.appendChild(layerTile);
 }
 
-function renderLayer(layer: Layer, canvas: HTMLCanvasElement, scaleFactor = 1) {
+function renderLayer(canvas: HTMLCanvasElement, layer?: Layer, scaleFactor = 1) {
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
-    const listRef = layer.lines;
-    const trans_x = -1 * layer.minPoint[0];
-    const trans_y = -1 * layer.minPoint[1];
-    let count = 0;
-    let x1, y1, x2, y2;
+    if (layer) {
+        const listRef = layer.lines;
+        const trans_x = -1 * layer.minPoint[0];
+        const trans_y = -1 * layer.minPoint[1];
+        let count = 0;
+        let x1, y1, x2, y2;
 
-    // Calculate the scale factors for the x and y dimensions
-    let scaleX = canvas.width / layer.maxPoint[0];
-    let scaleY = canvas.height / layer.maxPoint[1];
+        // Calculate the scale factors for the x and y dimensions
+        let scaleX = canvas.width / layer.maxPoint[0];
+        let scaleY = canvas.height / layer.maxPoint[1];
 
-    // Use the smaller scale factor to avoid stretching
-    let scale = Math.min(scaleX, scaleY);
+        // Use the smaller scale factor to avoid stretching
+        let scale = Math.min(scaleX, scaleY);
 
-    while (count < listRef.length) {
-        // Draw the line
-        x1 = listRef[count];
-        y1 = listRef[count + 1];
-        x2 = listRef[count + 2];
-        y2 = listRef[count + 3];
-        ctx.beginPath();
-        ctx.moveTo((x1 + trans_x) * scale * scaleFactor, (y1 + trans_y) * scale * scaleFactor);
-        ctx.lineTo((x2 + trans_x) * scale * scaleFactor, (y2 + trans_y) * scale * scaleFactor);
-        ctx.stroke();
-        count+=4;
+        while (count < listRef.length) {
+            // Draw the line
+            x1 = listRef[count];
+            y1 = listRef[count + 1];
+            x2 = listRef[count + 2];
+            y2 = listRef[count + 3];
+            ctx.beginPath();
+            ctx.moveTo((x1 + trans_x) * scale * scaleFactor, (y1 + trans_y) * scale * scaleFactor);
+            ctx.lineTo((x2 + trans_x) * scale * scaleFactor, (y2 + trans_y) * scale * scaleFactor);
+            ctx.stroke();
+            count += 4;
+        }
     }
 }
 
 function updateCanvas() {
     var mergedLayer = dxfHandler.mergeLayers(selectedLayers);
-    renderLayer(mergedLayer, mainCanvas, scaleFactor);
-    numEntities!.innerText = (mergedLayer.lines.length / 4).toString();
+    renderLayer(mainCanvas, mergedLayer, scaleFactor);
+    if (mergedLayer) numEntities!.innerText = (mergedLayer.lines.length / 4).toString(); 
+    else numEntities!.innerText = " - ";
 }
