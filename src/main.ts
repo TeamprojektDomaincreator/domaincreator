@@ -1,4 +1,4 @@
-import {DxfHandler, Layer, MergedLayer} from './dxf-handler';
+import {DxfHandler, Layer } from './dxf-handler';
 
 type RenderSettings = {
     ctx: CanvasRenderingContext2D;
@@ -9,7 +9,7 @@ type RenderSettings = {
     scaleFactor: number;
 };
 
-let scaleFactor = 1;
+let mainCanvasScale = 1;
 let selectedLayers: number[] = [];
 
 const dxfHandler = new DxfHandler();
@@ -30,7 +30,7 @@ drawButton!.addEventListener('click', () => {
 
 extractButton!.addEventListener('click', () => {
     const mainCanvasCtx = mainCanvas.getContext('2d') as CanvasRenderingContext2D;
-    const mergedLayer = dxfHandler.mergeLayers(selectedLayers);
+    const [minPoint, maxPoint] = dxfHandler.minMaxPointsForLayers(selectedLayers);
     const connectedGraph = dxfHandler.extractObjects(selectedLayers);
 
     mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
@@ -40,9 +40,9 @@ extractButton!.addEventListener('click', () => {
         ctx: mainCanvasCtx,
         width: mainCanvas.width,
         height: mainCanvas.height,
-        minPoint: mergedLayer.minPoint,
-        maxPoint: mergedLayer.maxPoint,
-        scaleFactor: scaleFactor,
+        minPoint: minPoint,
+        maxPoint: maxPoint,
+        scaleFactor: mainCanvasScale,
     };
 
     connectedGraph.forEach((lines) => {
@@ -60,12 +60,12 @@ extractButton!.addEventListener('click', () => {
 });
 
 scaleUp!.addEventListener('click', () => {
-    scaleFactor *= 2;
+    mainCanvasScale *= 1.5;
     updateCanvas();
 });
 
 scaleDown!.addEventListener('click', () => {
-    scaleFactor /= 2;
+    mainCanvasScale /= 1.5;
     updateCanvas();
 });
 
@@ -81,7 +81,7 @@ async function handleFileSelect(event: any) {
 }
 
 function resetState() {
-    scaleFactor = 1;
+    mainCanvasScale = 1;
     selectedLayers = [];
 }
 
@@ -101,7 +101,7 @@ function renderLayerSelection(layers: Layer[]) {
                 height: c.height,
                 minPoint: layer.minPoint,
                 maxPoint: layer.maxPoint,
-                scaleFactor: -1,
+                scaleFactor: 1,
             };
             renderLines(
                 layer.lines,
@@ -174,16 +174,14 @@ function renderLines(
     settings.ctx.lineWidth = 1;
     const trans_x = -1 * settings.minPoint[0];
     const trans_y = -1 * settings.minPoint[1];
-    let count = 0;
     let x1, y1, x2, y2;
 
-    // Calculate the scale factors for the x and y dimensions
     const scaleX = Math.abs(settings.width / (settings.maxPoint[0] + trans_x));
     const scaleY = Math.abs(settings.height / (settings.maxPoint[1] + trans_y));
+    const scale = Math.min(scaleY, scaleX) * settings.scaleFactor;
 
-    // Use the smaller scale factor to avoid stretching
-    const scale = settings.scaleFactor === -1 ? Math.min(scaleX, scaleY) : settings.scaleFactor;
 
+    let count = 0;
     while (count < lines.length) {
         // Draw the line
         x1 = lines[count];
@@ -207,20 +205,19 @@ function renderLines(
 function updateCanvas() {
     const ctx = mainCanvas.getContext('2d') as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-    const mergedLayer = dxfHandler.mergeLayers(selectedLayers);
+    const [minPoint, maxPoint] = dxfHandler.minMaxPointsForLayers(selectedLayers);
     const settings: RenderSettings = {
         ctx: ctx,
         width: mainCanvas.width,
         height: mainCanvas.height,
-        minPoint: mergedLayer.minPoint,
-        maxPoint: mergedLayer.maxPoint,
-        scaleFactor: scaleFactor,
+        minPoint: minPoint,
+        maxPoint: maxPoint,
+        scaleFactor: mainCanvasScale,
     };
-    mergedLayer.lines.forEach((lines) => {
-        ctx.strokeStyle = 'black';
-        renderLines(
-            lines, settings
-        );
-    });
-    numEntities!.innerText = mergedLayer.lineCount.toString();
+
+    ctx.strokeStyle = 'black';
+    selectedLayers.forEach((i) => {
+        renderLines(dxfHandler.layers[i].lines, settings);
+    })
+    numEntities!.innerText = dxfHandler.numOfLinesForLayers(selectedLayers).toString();
 }
