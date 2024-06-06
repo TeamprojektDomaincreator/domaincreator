@@ -20,65 +20,65 @@ drawButton!.addEventListener('click', () => {
     fileInput!.click();
 });
 
-extractButton!.addEventListener('click', () => {
-    const mainCanvasCtx = mainCanvas.getContext('2d') as CanvasRenderingContext2D;
-    const mergedLayer = dxfHandler.mergeLayers(selectedLayers);
-    const lines = dxfHandler.extractObjects(selectedLayers);
-    const trans_x = -1 * mergedLayer.minPoint[0];
-    const trans_y = -1 * mergedLayer.minPoint[1];
-    let count = 0;
-    let x1, y1, x2, y2;
+// extractButton!.addEventListener('click', () => {
+//     const mainCanvasCtx = mainCanvas.getContext('2d') as CanvasRenderingContext2D;
+//     const mergedLayer = dxfHandler.mergeLayers(selectedLayers);
+//     const lines = dxfHandler.extractObjects(selectedLayers);
+//     const trans_x = -1 * mergedLayer.minPoint[0];
+//     const trans_y = -1 * mergedLayer.minPoint[1];
+//     let count = 0;
+//     let x1, y1, x2, y2;
 
-    mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-    mainCanvasCtx.lineWidth = 1;
+//     mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+//     mainCanvasCtx.lineWidth = 1;
 
-    while (count < lines.length) {
-        // Generate a random color
-        const randomColor =
-            'rgba(' +
-            Math.floor(Math.random() * 256) +
-            ',' +
-            Math.floor(Math.random() * 256) +
-            ',' +
-            Math.floor(Math.random() * 256) +
-            ',1)';
-        mainCanvasCtx.strokeStyle = randomColor;
+//     while (count < lines.length) {
+//         // Generate a random color
+//         const randomColor =
+//             'rgba(' +
+//             Math.floor(Math.random() * 256) +
+//             ',' +
+//             Math.floor(Math.random() * 256) +
+//             ',' +
+//             Math.floor(Math.random() * 256) +
+//             ',1)';
+//         mainCanvasCtx.strokeStyle = randomColor;
 
-        // Draw the line with black start and end points
-        x1 = lines[count];
-        y1 = lines[count + 1];
-        x2 = lines[count + 2];
-        y2 = lines[count + 3];
+//         // Draw the line with black start and end points
+//         x1 = lines[count];
+//         y1 = lines[count + 1];
+//         x2 = lines[count + 2];
+//         y2 = lines[count + 3];
 
-        mainCanvasCtx.beginPath();
-        mainCanvasCtx.fillStyle = 'black'; // Set the fill color to black for drawing the points
-        mainCanvasCtx.arc(
-            (x1 + trans_x) * scaleFactor,
-            (y1 + trans_y) * scaleFactor,
-            3,
-            0,
-            2 * Math.PI
-        ); // Draw the start point
-        mainCanvasCtx.fill();
+//         mainCanvasCtx.beginPath();
+//         mainCanvasCtx.fillStyle = 'black'; // Set the fill color to black for drawing the points
+//         mainCanvasCtx.arc(
+//             (x1 + trans_x) * scaleFactor,
+//             (y1 + trans_y) * scaleFactor,
+//             3,
+//             0,
+//             2 * Math.PI
+//         ); // Draw the start point
+//         mainCanvasCtx.fill();
 
-        mainCanvasCtx.beginPath();
-        mainCanvasCtx.arc(
-            (x2 + trans_x) * scaleFactor,
-            (y2 + trans_y) * scaleFactor,
-            3,
-            0,
-            2 * Math.PI
-        ); // Draw the end point
-        mainCanvasCtx.fill();
+//         mainCanvasCtx.beginPath();
+//         mainCanvasCtx.arc(
+//             (x2 + trans_x) * scaleFactor,
+//             (y2 + trans_y) * scaleFactor,
+//             3,
+//             0,
+//             2 * Math.PI
+//         ); // Draw the end point
+//         mainCanvasCtx.fill();
 
-        mainCanvasCtx.beginPath();
-        mainCanvasCtx.moveTo((x1 + trans_x) * scaleFactor, (y1 + trans_y) * scaleFactor);
-        mainCanvasCtx.lineTo((x2 + trans_x) * scaleFactor, (y2 + trans_y) * scaleFactor);
-        mainCanvasCtx.stroke();
+//         mainCanvasCtx.beginPath();
+//         mainCanvasCtx.moveTo((x1 + trans_x) * scaleFactor, (y1 + trans_y) * scaleFactor);
+//         mainCanvasCtx.lineTo((x2 + trans_x) * scaleFactor, (y2 + trans_y) * scaleFactor);
+//         mainCanvasCtx.stroke();
 
-        count += 4;
-    }
-});
+//         count += 4;
+//     }
+// });
 
 scaleUp!.addEventListener('click', () => {
     scaleFactor *= 2;

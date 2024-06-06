@@ -177,22 +177,22 @@ export class DxfHandler {
         return this.layers.push({name: layername, lines: [], minPoint: new Float32Array([0, 0]), maxPoint: new Float32Array([0, 0])}) - 1;
     }
 
-    /**
-     * Extracts polylines from a single layer or group of layers.
-     * 
-     * @param layerIndices List of indices that the user selected for extraction.
-     * @returns A list of of Float32Arrays that each represent a polyline of a object. 
-     */
-    extractObjects(layerIndices: number[]): number[] {
-        const extractor = new ObjectExtracor();
-        const data = this._scaleData(this.mergeLayers(layerIndices)); 
-        extractor.addLines(data[0]);
-        let lines = extractor.extract();
-        lines = lines.map((x) => {
-            return x / data[1];
-        });
-        return lines;
-    }
+    // /**
+    //  * Extracts polylines from a single layer or group of layers.
+    //  * 
+    //  * @param layerIndices List of indices that the user selected for extraction.
+    //  * @returns A list of of Float32Arrays that each represent a polyline of a object. 
+    //  */
+    // extractObjects(layerIndices: number[]): number[] {
+    //     const extractor = new ObjectExtracor();
+    //     const data = this._scaleData(this.mergeLayers(layerIndices)); 
+    //     extractor.addLines(data[0]);
+    //     let lines = extractor.extract();
+    //     lines = lines.map((x) => {
+    //         return x / data[1];
+    //     });
+    //     return lines;
+    // }
 
     _scaleData(layer: Layer): [number[], number] {
         const range = layer.maxPoint[0] - layer.minPoint[0];
