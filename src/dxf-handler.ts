@@ -1,3 +1,4 @@
+import {SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment} from './line-tools';
 /**
  * Represents a DXF Layer
  */
@@ -6,6 +7,13 @@ export interface Layer {
     lines: number[];
     minPoint: Float32Array;
     maxPoint: Float32Array;
+}
+
+export interface MergedLayer {
+    lines: number[][];
+    minPoint: Float32Array;
+    maxPoint: Float32Array;
+    lineCount: number;
 }
 
 /* Constants */
@@ -19,12 +27,12 @@ const CODE_21 = ' 21';
 
 /**
  * Handles DXF Files.
- * 
+ *
  * @description
  * The DxfHandler is able to decode all lines from a DXF and store them on a per-layer basis.
  * To avoid unnecessary copying, all decoded lines are stored inside the handler itself.
  * It also provides convenience methods to quickly move through the layers.
- * 
+ *
  * @example
  * ```js
  * const handler = new DxfHandler();
@@ -35,7 +43,6 @@ const CODE_21 = ' 21';
  * ```
  */
 export class DxfHandler {
-
     layers: Layer[] = [];
 
     _reset() {
@@ -48,7 +55,7 @@ export class DxfHandler {
      *
      * @param {File} file - A File object representing the DXF file to be loaded.
      *
-     * @returns A empty promise that resolves once the entire file has been parsed. 
+     * @returns A empty promise that resolves once the entire file has been parsed.
      *
      * @description
      * This function reads the provided DXF file using a FileReader and then splits the file text into individual entities. Each entity is parsed and processed as follows:
@@ -87,7 +94,7 @@ export class DxfHandler {
         let time = performance.now();
 
         /* Windows and Mac/Linux handle return differently */
-        const returnChar = fileText.indexOf("\r") === -1 ? '\n' : '\r';
+        const returnChar = fileText.indexOf('\r') === -1 ? '\n' : '\r';
         const entity = ENTITY + returnChar;
         const line = LINE + returnChar;
         const nameID = CODE_8 + returnChar;
@@ -96,9 +103,9 @@ export class DxfHandler {
         const endX = CODE_11 + returnChar;
         const endY = CODE_21 + returnChar;
 
-        let entityCount = 0
+        let entityCount = 0;
         let temp = 0;
-        let layerName = "";
+        let layerName = '';
         let arrayRef;
 
         let x1, y1, x2, y2;
@@ -108,8 +115,8 @@ export class DxfHandler {
             /* No Entities anymore */
             if (i === -1) break;
             entityCount++;
-            temp = fileText.indexOf('AcDb', i + entity.length)
-            if (fileText.substring(temp, temp + line.length ) !== line) continue;
+            temp = fileText.indexOf('AcDb', i + entity.length);
+            if (fileText.substring(temp, temp + line.length) !== line) continue;
 
             i = fileText.indexOf(nameID, i);
             /* Skip until next entry */
@@ -130,13 +137,23 @@ export class DxfHandler {
             y2 = fileText.indexOf('\n', y2) + 1;
 
             arrayRef = this.layers[temp].lines;
-            arrayRef.push(parseFloat(fileText.substring(x1, fileText.indexOf(returnChar, x1))));
-            arrayRef.push(parseFloat(fileText.substring(y1, fileText.indexOf(returnChar, y1))));
-            arrayRef.push(parseFloat(fileText.substring(x2, fileText.indexOf(returnChar, x2))));
-            arrayRef.push(parseFloat(fileText.substring(y2, fileText.indexOf(returnChar, y2))));
+            arrayRef.push(
+                parseFloat(fileText.substring(x1, fileText.indexOf(returnChar, x1)))
+            );
+            arrayRef.push(
+                parseFloat(fileText.substring(y1, fileText.indexOf(returnChar, y1)))
+            );
+            arrayRef.push(
+                parseFloat(fileText.substring(x2, fileText.indexOf(returnChar, x2)))
+            );
+            arrayRef.push(
+                parseFloat(fileText.substring(y2, fileText.indexOf(returnChar, y2)))
+            );
         }
         time = performance.now() - time;
-        console.log(`DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`)
+        console.log(
+            `DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`
+        );
 
         /* Find the minimum and maximum Points */
         for (let i = 0; i < this.layers.length; i++) {
@@ -147,15 +164,15 @@ export class DxfHandler {
             minPoint[1] = lines[1];
             maxPoint[0] = lines[0];
             maxPoint[1] = lines[1];
-          
+
             for (let j = 0; j < lines.length; j += 2) {
-              minPoint[0] = Math.min(minPoint[0], lines[j]);
-              minPoint[1] = Math.min(minPoint[1], lines[j+1]);
-          
-              maxPoint[0] = Math.max(maxPoint[0], lines[j]);
-              maxPoint[1] = Math.max(maxPoint[1], lines[j+1]);
+                minPoint[0] = Math.min(minPoint[0], lines[j]);
+                minPoint[1] = Math.min(minPoint[1], lines[j + 1]);
+
+                maxPoint[0] = Math.max(maxPoint[0], lines[j]);
+                maxPoint[1] = Math.max(maxPoint[1], lines[j + 1]);
             }
-          
+
             this.layers[i].minPoint = minPoint;
             this.layers[i].maxPoint = maxPoint;
         }
@@ -163,10 +180,10 @@ export class DxfHandler {
 
     /**
      * Gets the index of a layer with a certain name or creates a new layer.
-     * 
+     *
      * @param layername Name of the layer to get the index of.
      * @returns Index of the layer.
-     * 
+     *
      * @warning This function is for internal use only!
      */
     _getOrAddLayerID(layername: string): number {
@@ -174,25 +191,47 @@ export class DxfHandler {
         for (let i = this.layers.length - 1; i >= 0; i--) {
             if (this.layers[i].name === layername) return i;
         }
-        return this.layers.push({name: layername, lines: [], minPoint: new Float32Array([0, 0]), maxPoint: new Float32Array([0, 0])}) - 1;
+        return (
+            this.layers.push({
+                name: layername,
+                lines: [],
+                minPoint: new Float32Array([0, 0]),
+                maxPoint: new Float32Array([0, 0]),
+            }) - 1
+        );
     }
 
-    // /**
-    //  * Extracts polylines from a single layer or group of layers.
-    //  * 
-    //  * @param layerIndices List of indices that the user selected for extraction.
-    //  * @returns A list of of Float32Arrays that each represent a polyline of a object. 
-    //  */
-    // extractObjects(layerIndices: number[]): number[] {
-    //     const extractor = new ObjectExtracor();
-    //     const data = this._scaleData(this.mergeLayers(layerIndices)); 
-    //     extractor.addLines(data[0]);
-    //     let lines = extractor.extract();
-    //     lines = lines.map((x) => {
-    //         return x / data[1];
-    //     });
-    //     return lines;
-    // }
+    /**
+     * Extracts polylines from a single layer or group of layers.
+     *
+     * @param layerIndices List of indices that the user selected for extraction.
+     * @returns A list of of Float32Arrays that each represent a polyline of a object.
+     */
+    extractObjects(layerIndices: number[]): number[][] {
+        const unprocessedLines: number[] = [];
+        layerIndices.forEach((i) => {
+            Array.prototype.push.apply(unprocessedLines, this.layers[i].lines);
+        });
+        const res: LineSegment[] = sweepLine(unprocessedLines);
+
+        const matrix = new SpaceEfficientAdjacencyMatrix(res);
+        //matrix.logMemorySavings();
+        const indices = matrix.convertToConnectedGraph();
+
+        const res2: number[][] = [];
+        let index = -1;
+        let lineCount = 0;
+        indices.forEach((i) => {
+            lineCount += i.length;
+            res2.push([]);
+            index++;
+            for (const s of i) {
+                if (s.start.equals(s.end)) continue;
+                res2[index].push(s.start.x, s.start.y, s.end.x, s.end.y);
+            }
+        });
+        return res2;
+    }
 
     _scaleData(layer: Layer): [number[], number] {
         const range = layer.maxPoint[0] - layer.minPoint[0];
@@ -212,21 +251,32 @@ export class DxfHandler {
         return [res, scaleFactor];
     }
 
-    mergeLayers(layerIndices: number[]): Layer | undefined {
-       if (layerIndices.length !== 0) {
-            let mergedLayer: Layer = JSON.parse(JSON.stringify(this.layers[layerIndices[0]]));
-            
-            return layerIndices.reduce((mergedLayer, currentIndex) => {
-                const layer = this.layers[currentIndex];
-                mergedLayer.lines.push(...layer.lines);
+    mergeLayers(layerIndices: number[]): MergedLayer {
+        const layer: MergedLayer = {
+            lines: [],
+            minPoint: new Float32Array(2),
+            maxPoint: new Float32Array(2),
+            lineCount: 0,
+        };
+        if (layerIndices.length === 0) return layer;
+        let minx = this.layers[layerIndices[0]].minPoint[0];
+        let miny = this.layers[layerIndices[0]].minPoint[1];
+        let maxx = this.layers[layerIndices[0]].maxPoint[0];
+        let maxy = this.layers[layerIndices[0]].maxPoint[1];
+        layerIndices.forEach((i) => {
+            const ref = this.layers[i];
+            layer.lines.push(ref.lines);
+            minx = Math.min(minx, ref.minPoint[0]);
+            miny = Math.min(miny, ref.minPoint[1]);
+            maxx = Math.max(maxx, ref.maxPoint[0]);
+            maxy = Math.max(maxy, ref.maxPoint[1]);
+            layer.lineCount += ref.lines.length / 4;
+        });
+        layer.minPoint[0] = minx;
+        layer.minPoint[1] = miny;
+        layer.maxPoint[0] = maxx;
+        layer.maxPoint[1] = maxy;
 
-                mergedLayer.minPoint[0] = Math.min(mergedLayer.minPoint[0], layer.minPoint[0]);
-                mergedLayer.minPoint[1] = Math.min(mergedLayer.minPoint[1], layer.minPoint[1]);
-                mergedLayer.maxPoint[0] = Math.max(mergedLayer.maxPoint[0], layer.maxPoint[0]);
-                mergedLayer.maxPoint[1] = Math.max(mergedLayer.maxPoint[1], layer.maxPoint[1]);
-
-                return mergedLayer;
-            }, mergedLayer);
-       }
+        return layer;
     }
 }
