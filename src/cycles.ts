@@ -25,6 +25,8 @@ export function findCycles(graph: LineSegment[]): LineSegment[][] {
       _dfsForCycle(i, visited, -1, stack, allCycles, points.points, matrix);
     }
   }
+
+  
   return allCycles;
 }
 
