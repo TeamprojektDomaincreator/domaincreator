@@ -1,11 +1,11 @@
 /**
  * Represents a DXF Layer
  */
-interface Layer {
-    name: string,
-    lines: number[],
-    minPoint: Float32Array,
-    maxPoint: Float32Array,
+export interface Layer {
+    name: string;
+    lines: number[];
+    minPoint: Float32Array;
+    maxPoint: Float32Array;
 }
 
 /* Constants */
@@ -38,13 +38,9 @@ export class DxfHandler {
 
     layers: Layer[] = [];
 
-    #currentIndex = 0;
-
     _reset() {
         /* Mark all contents for garbage collection */
         this.layers.length = 0;
-
-        this.#currentIndex = 0;
     }
 
     /**
@@ -181,57 +177,56 @@ export class DxfHandler {
         return this.layers.push({name: layername, lines: [], minPoint: new Float32Array([0, 0]), maxPoint: new Float32Array([0, 0])}) - 1;
     }
 
-    /**
-     * Extracts polylines from a single layer or group of layers.
-     * 
-     * @param layerIndices List of indices that the user selected for extraction.
-     * @returns A list of of Float32Arrays that each represent a polyline of a object. 
-     */
-    extractObjects(layerIndices: number[]): Float32Array[] {
-        const res: Float32Array[] = []
-        // @todo: Add implementation
-        return res;
+    // /**
+    //  * Extracts polylines from a single layer or group of layers.
+    //  * 
+    //  * @param layerIndices List of indices that the user selected for extraction.
+    //  * @returns A list of of Float32Arrays that each represent a polyline of a object. 
+    //  */
+    // extractObjects(layerIndices: number[]): number[] {
+    //     const extractor = new ObjectExtracor();
+    //     const data = this._scaleData(this.mergeLayers(layerIndices)); 
+    //     extractor.addLines(data[0]);
+    //     let lines = extractor.extract();
+    //     lines = lines.map((x) => {
+    //         return x / data[1];
+    //     });
+    //     return lines;
+    // }
+
+    _scaleData(layer: Layer): [number[], number] {
+        const range = layer.maxPoint[0] - layer.minPoint[0];
+
+        // Avoid division by zero
+        if (range === 0) {
+            return [layer.lines, 1]; // No scaling needed
+        }
+
+        const scaleFactor = 1 / range;
+
+        console.log(scaleFactor);
+        const res: number[] = [];
+        for (let i = 0; i < layer.lines.length; i++) {
+            res.push(layer.lines[i] * scaleFactor);
+        }
+        return [res, scaleFactor];
     }
 
-    /**
-     * Retrieves the current layer.
-     * 
-     *  @note
-     * The returned array is flattened for cache coherency. Iterate over it in steps of 4 to access individual line coordinates.
-     * 
-     *  @example
-     * ```js
-     * const list = handler.currentLayer.lines;
-     * let i = 0;
-     * while (i < list.length) {
-     *   const line_start_x = list[i];
-     *   const line_start_y = list[i + 1];
-     *   const line_end_x = list[i + 2];
-     *   const line_end_y = list[i + 3];
-     *   i += 4;
-     * }
-     * ```
-     * @see Layer
-     * 
-     *  @returns An array of numbers, aligned as follows: [start_x0, start_y0, end_x1, end_y1, ...]
-     */
-    get currentLayer(): Layer {
-        if (this.layers.length === 0) return {name: "", lines: [], minPoint: new Float32Array([0, 0]), maxPoint: new Float32Array([0, 0])};
-        return this.layers[this.#currentIndex];
-    }
+    mergeLayers(layerIndices: number[]): Layer | undefined {
+       if (layerIndices.length !== 0) {
+            let mergedLayer: Layer = JSON.parse(JSON.stringify(this.layers[layerIndices[0]]));
+            
+            return layerIndices.reduce((mergedLayer, currentIndex) => {
+                const layer = this.layers[currentIndex];
+                mergedLayer.lines.push(...layer.lines);
 
-    moveToNextLayer() {
-        this.#currentIndex = (this.#currentIndex + 1) % this.layers.length;
-    }
+                mergedLayer.minPoint[0] = Math.min(mergedLayer.minPoint[0], layer.minPoint[0]);
+                mergedLayer.minPoint[1] = Math.min(mergedLayer.minPoint[1], layer.minPoint[1]);
+                mergedLayer.maxPoint[0] = Math.max(mergedLayer.maxPoint[0], layer.maxPoint[0]);
+                mergedLayer.maxPoint[1] = Math.max(mergedLayer.maxPoint[1], layer.maxPoint[1]);
 
-    moveToPrevLayer() {
-        this.#currentIndex = this.#currentIndex === 0 ? this.layers.length - 1 : this.#currentIndex - 1;
-    }
-
-    /**
-     * Gets the index of the current layer.
-     */
-    get currentIndex(): number {
-        return this.#currentIndex;
+                return mergedLayer;
+            }, mergedLayer);
+       }
     }
 }
