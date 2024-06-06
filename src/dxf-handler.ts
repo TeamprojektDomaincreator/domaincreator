@@ -268,8 +268,8 @@ export class DxfHandler {
             layer.lines.push(ref.lines);
             minx = Math.min(minx, ref.minPoint[0]);
             miny = Math.min(miny, ref.minPoint[1]);
-            maxx = Math.max(minx, ref.maxPoint[0]);
-            maxy = Math.max(miny, ref.maxPoint[1]);
+            maxx = Math.max(maxx, ref.maxPoint[0]);
+            maxy = Math.max(maxy, ref.maxPoint[1]);
             layer.lineCount += ref.lines.length / 4;
         });
         layer.minPoint[0] = minx;

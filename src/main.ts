@@ -101,7 +101,7 @@ function renderLayerSelection(layers: Layer[]) {
                 height: c.height,
                 minPoint: layer.minPoint,
                 maxPoint: layer.maxPoint,
-                scaleFactor: 1,
+                scaleFactor: -1,
             };
             renderLines(
                 layer.lines,
@@ -182,7 +182,7 @@ function renderLines(
     const scaleY = Math.abs(settings.height / (settings.maxPoint[1] + trans_y));
 
     // Use the smaller scale factor to avoid stretching
-    const scale = Math.min(scaleX, scaleY);
+    const scale = settings.scaleFactor === -1 ? Math.min(scaleX, scaleY) : settings.scaleFactor;
 
     while (count < lines.length) {
         // Draw the line
@@ -192,12 +192,12 @@ function renderLines(
         y2 = lines[count + 3];
         settings.ctx.beginPath();
         settings.ctx.moveTo(
-            (x1 + trans_x) * scale * settings.scaleFactor,
-            (y1 + trans_y) * scale * settings.scaleFactor
+            (x1 + trans_x) * scale,
+            (y1 + trans_y) * scale
         );
         settings.ctx.lineTo(
-            (x2 + trans_x) * scale * settings.scaleFactor,
-            (y2 + trans_y) * scale * settings.scaleFactor
+            (x2 + trans_x) * scale,
+            (y2 + trans_y) * scale
         );
         settings.ctx.stroke();
         count += 4;
