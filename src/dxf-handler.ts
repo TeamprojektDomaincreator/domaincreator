@@ -9,13 +9,6 @@ export interface Layer {
     maxPoint: Float32Array;
 }
 
-export interface MergedLayer {
-    lines: number[][];
-    minPoint: Float32Array;
-    maxPoint: Float32Array;
-    lineCount: number;
-}
-
 /* Constants */
 const ENTITY = 'AcDbEntity';
 const LINE = 'AcDbLine';
@@ -251,32 +244,27 @@ export class DxfHandler {
         return [res, scaleFactor];
     }
 
-    mergeLayers(layerIndices: number[]): MergedLayer {
-        const layer: MergedLayer = {
-            lines: [],
-            minPoint: new Float32Array(2),
-            maxPoint: new Float32Array(2),
-            lineCount: 0,
-        };
-        if (layerIndices.length === 0) return layer;
-        let minx = this.layers[layerIndices[0]].minPoint[0];
-        let miny = this.layers[layerIndices[0]].minPoint[1];
-        let maxx = this.layers[layerIndices[0]].maxPoint[0];
-        let maxy = this.layers[layerIndices[0]].maxPoint[1];
+    minMaxPointsForLayers(layerIndices: number[]): [Float32Array, Float32Array] {
+        const minPoint = new Float32Array(2);
+        const maxPoint = new Float32Array(2);
+        if (layerIndices.length === 0) return [minPoint, maxPoint];
+        minPoint.set(this.layers[layerIndices[0]].minPoint);
+        maxPoint.set(this.layers[layerIndices[0]].maxPoint);
         layerIndices.forEach((i) => {
             const ref = this.layers[i];
-            layer.lines.push(ref.lines);
-            minx = Math.min(minx, ref.minPoint[0]);
-            miny = Math.min(miny, ref.minPoint[1]);
-            maxx = Math.max(maxx, ref.maxPoint[0]);
-            maxy = Math.max(maxy, ref.maxPoint[1]);
-            layer.lineCount += ref.lines.length / 4;
-        });
-        layer.minPoint[0] = minx;
-        layer.minPoint[1] = miny;
-        layer.maxPoint[0] = maxx;
-        layer.maxPoint[1] = maxy;
+            minPoint[0] = Math.min(minPoint[0], ref.minPoint[0]);
+            minPoint[1] = Math.min(minPoint[1], ref.minPoint[1]);
+            maxPoint[0] = Math.max(maxPoint[0], ref.maxPoint[0]);
+            maxPoint[1] = Math.max(maxPoint[1], ref.maxPoint[1]);
+        })
+        return [minPoint, maxPoint];
+    }
 
-        return layer;
+    numOfLinesForLayers(layerIndices: number[]): number {
+        let count = 0;
+        layerIndices.forEach((i) => {
+            count += this.layers[i].lines.length / 4;
+        })
+        return count;
     }
 }
