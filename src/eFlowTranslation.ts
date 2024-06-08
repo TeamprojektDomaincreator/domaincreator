@@ -85,6 +85,11 @@ function toEflowPoly(lines: UnorderdLineSegment[], currIndex: number) {
     return [segmentPoints, pointOrder];
 }
 
+interface Hole {
+    x: number;
+    y: number;
+}
+
 const base = {
     name: 'Video2',
     Scenario: {
@@ -123,12 +128,7 @@ const base = {
         numberSegments: 0,
         pointOrder: [] as number[],
         numberHoles: 1,
-        holes: [
-            {
-                x: 90,
-                y: 50,
-            },
-        ],
+        holes: [] as Hole[],
     },
     Grid: {},
 };
