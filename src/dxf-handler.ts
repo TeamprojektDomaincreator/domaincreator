@@ -231,6 +231,8 @@ export class DxfHandler {
         // needs to get outer convex hull instead of min and max points
         const eFlowFormat = toEflowFormat(outlines, minPoint, maxPoint);
 
+        console.log('eFlowFormat: ', eFlowFormat);
+
         const outlineComponents = outlines.map((outline) =>
             outline.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
         );
