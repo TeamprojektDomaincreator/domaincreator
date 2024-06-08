@@ -1,3 +1,4 @@
+import { convexHull } from './convex-hull';
 import {findCycles} from './cycles';
 import {toEflowFormat} from './eFlowTranslation';
 import {SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment} from './line-tools';
@@ -232,20 +233,18 @@ export class DxfHandler {
                 findOutlineOfConnectedCyclesLines(connectedCycle.cycles)
             )
         );
+        
 
-        time = performance.now() - time;
-        console.log(`Cycle and Outline: Took ${time.toPrecision(4)} ms`);
+        // Here calculate outer convex hull
+        const simpleConvexHull = convexHull(outlines);
+        // needs to get outer convex hull instead of min and max points
+        const {base, cyclesWithOutline} = toEflowFormat(outlines, simpleConvexHull);
 
-        const [minPoint, maxPoint] = this.minMaxPointsForLayers(layerIndices);
+        console.log('eFlowFormat: ', base);
 
-        const eFlowFormat = toEflowFormat(outlines, minPoint, maxPoint);
-
-        const outlineComponents = outlines.map((outline) =>
-            outline
-                .flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
+        return cyclesWithOutline.map((cycle) =>
+            cycle.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
         );
-
-        return outlineComponents;
     }
 
     _scaleData(layer: Layer): [number[], number] {
