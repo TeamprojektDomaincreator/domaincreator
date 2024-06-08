@@ -218,12 +218,11 @@ export class DxfHandler {
 
         const cycles = connectedGraphs.map(findCycles);
 
-        const outlines = cycles
-            .flatMap((connectedCyclesOfOneGraph) =>
-                connectedCyclesOfOneGraph.map((connectedCycle) =>
-                    findOutlineOfConnectedCyclesLines(connectedCycle.cycles)
-                )
+        const outlines = cycles.flatMap((connectedCyclesOfOneGraph) =>
+            connectedCyclesOfOneGraph.map((connectedCycle) =>
+                findOutlineOfConnectedCyclesLines(connectedCycle.cycles)
             )
+        );
 
         // Here calculate outer convex hull
 

@@ -73,7 +73,7 @@ function hull(lines: LineSegment[]): UnorderdLineSegment[] {
  * Sorts an array of line segments by the start point of each line.
  * The primary sorting criterion is the y-coordinate of the start point.
  * If two lines have the same y-coordinate for the start point, the x-coordinate is used.
- * 
+ *
  * @function sortLinesByStartPoint
  * @param {LineSegment[]} lines - An array of line segments to be sorted.
  * @returns {LineSegment[]} - A new array of line segments sorted by the start point.
