@@ -1,4 +1,4 @@
-import {DxfHandler, Layer } from './dxf-handler';
+import {DxfHandler, Layer} from './dxf-handler';
 
 type RenderSettings = {
     ctx: CanvasRenderingContext2D;
@@ -103,10 +103,7 @@ function renderLayerSelection(layers: Layer[]) {
                 maxPoint: layer.maxPoint,
                 scaleFactor: 1,
             };
-            renderLines(
-                layer.lines,
-                settings,
-            );
+            renderLines(layer.lines, settings);
         }
     });
 }
@@ -166,11 +163,7 @@ function _addLayerTileToUI(layer: Layer, layerId: number) {
     parentDiv?.appendChild(layerTile);
 }
 
-function renderLines(
-    lines: number[],
-    settings: RenderSettings
-) {
-
+function renderLines(lines: number[], settings: RenderSettings) {
     settings.ctx.lineWidth = 1;
     const trans_x = -1 * settings.minPoint[0];
     const trans_y = -1 * settings.minPoint[1];
@@ -180,7 +173,6 @@ function renderLines(
     const scaleY = Math.abs(settings.height / (settings.maxPoint[1] + trans_y));
     const scale = Math.min(scaleY, scaleX) * settings.scaleFactor;
 
-
     let count = 0;
     while (count < lines.length) {
         // Draw the line
@@ -189,14 +181,8 @@ function renderLines(
         x2 = lines[count + 2];
         y2 = lines[count + 3];
         settings.ctx.beginPath();
-        settings.ctx.moveTo(
-            (x1 + trans_x) * scale,
-            (y1 + trans_y) * scale
-        );
-        settings.ctx.lineTo(
-            (x2 + trans_x) * scale,
-            (y2 + trans_y) * scale
-        );
+        settings.ctx.moveTo((x1 + trans_x) * scale, (y1 + trans_y) * scale);
+        settings.ctx.lineTo((x2 + trans_x) * scale, (y2 + trans_y) * scale);
         settings.ctx.stroke();
         count += 4;
     }
@@ -218,6 +204,6 @@ function updateCanvas() {
     ctx.strokeStyle = 'black';
     selectedLayers.forEach((i) => {
         renderLines(dxfHandler.layers[i].lines, settings);
-    })
+    });
     numEntities!.innerText = dxfHandler.numOfLinesForLayers(selectedLayers).toString();
 }
