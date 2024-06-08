@@ -8,6 +8,7 @@ import {
     LineSegment,
     Point,
     SpaceEfficientAdjacencyMatrix,
+    UniquePoints,
     UnorderdLineSegment,
 } from './line-tools';
 import {createLinesFromPoints} from './utils';
@@ -32,17 +33,27 @@ export function findOutlineOfConnectedCyclesLines(cycles: LineSegment[][]) {
  */
 function hull(lines: LineSegment[]): UnorderdLineSegment[] {
     const res: Point[] = [];
-    const linesSorted = sortLinesByStartPoint(lines);
-    const efficientMatrix = new SpaceEfficientAdjacencyMatrix(linesSorted);
-    const points = efficientMatrix.points;
 
-    const sortedPoints = points.getPointsSortedByY();
+    const uniquePoints = new UniquePoints();
+    lines.forEach((line) => {
+        uniquePoints.add(line.start);
+        uniquePoints.add(line.end);
+    });
+
+    const sortedPoints = uniquePoints.getPointsSortedByY();
 
     const matrix = new AdjacencyMatrix(sortedPoints);
 
-    for (let line of linesSorted) {
+    for (let line of lines) {
         matrix.addEdge(line.start, line.end);
     }
+
+    const neighborOfFirst = matrix.getNeighbors(sortedPoints[0]);
+
+    const uniquePoints2 = new UniquePoints();
+    neighborOfFirst.forEach((point) => {
+        uniquePoints2.add(point);
+    });
 
     res.push(sortedPoints[0]);
     res.push(sortedPoints[1]);
@@ -53,16 +64,39 @@ function hull(lines: LineSegment[]): UnorderdLineSegment[] {
         if (!neighbors) {
             break;
         }
-        const fNeighbors = neighbors.filter((point) => !res.includes(point));
+        // not sure if String is needed here
+        const fNeighbors = neighbors.filter(
+            (point) => !res[res.length - 2].equals(point) || !res[res.length - 1].equals(point)
+        );
         if (fNeighbors.length === 0) {
             break;
         }
+        console.log('logData: ', {
+            res: [...res],
+            firstPoint: res[res.length - 2],
+            startPoint: res[res.length - 1],
+            fNeighbors: fNeighbors,
+            unfilterdNeighbors: neighbors,
+        });
+
+        const nextPointsAngles = fNeighbors.map((point) =>
+            calculateAngle(res[res.length - 2], res[res.length - 1], point)
+        );
+        console.log(
+            'nextPoints: ',
+            nextPointsAngles.map((angle, index) => ({
+                point: fNeighbors[index],
+                angle,
+            }))
+        );
 
         nextPoint = findPointWithBiggestClockwiseAngle(
             res[res.length - 2],
             res[res.length - 1],
             fNeighbors
         );
+        matrix.removeEdge(res[res.length - 1], nextPoint);
+
         res.push(nextPoint);
     }
 
@@ -105,12 +139,12 @@ function findPointWithBiggestClockwiseAngle(
     startPoint: Point,
     neighbors: Point[]
 ): Point {
-    let maxAngle = Infinity;
+    let maxAngle = 0;
     let maxPoint = neighbors[0];
 
     for (let point of neighbors) {
         const angle = calculateAngle(firstPoint, startPoint, point);
-        if (angle <= maxAngle) {
+        if (angle >= maxAngle) {
             maxAngle = angle;
             maxPoint = point;
         }
@@ -128,15 +162,25 @@ function findPointWithBiggestClockwiseAngle(
  * @returns {number} - The calculated angle.
  */
 function calculateAngle(p1: Point, p2: Point, p3: Point): number {
-    const v1 = [p2.x - p1.x, p2.y - p1.y];
-    const v2 = [p3.x - p2.x, p3.y - p2.y];
+    const u = [p1.x - p2.x, p1.y - p2.y];
+    const v = [p3.x - p2.x, p3.y - p2.y];
 
-    const dotProduct = v1[0] * v2[0] + v1[1] * v2[1]; // scalar
-    const det = v1[0] * v2[1] - v1[1] * v2[0];
+    const dotProduct = u[0] * v[0] + u[1] * v[1]; // skalar
 
-    const angle = Math.atan2(det, dotProduct);
+    const det = u[0] * v[1] - u[1] * v[0];
 
-    return angle;
+    const angle = Math.atan2(det, dotProduct) * (180 / Math.PI);
+
+    let resAngle;
+    if (angle > 0) {
+        resAngle = 360 - angle;
+    } else if (angle < 0) {
+        resAngle = angle * -1;
+    } else {
+        resAngle = angle;
+    }
+
+    return resAngle;
 }
 
 /**
@@ -164,6 +208,13 @@ class AdjacencyMatrix {
         const i2 = this.points.indexOf(p2);
         this.matrix[i1][i2] = true;
         this.matrix[i2][i1] = true;
+    }
+
+    removeEdge(p1: Point, p2: Point) {
+        const i1 = this.points.indexOf(p1);
+        const i2 = this.points.indexOf(p2);
+        this.matrix[i1][i2] = false;
+        this.matrix[i2][i1] = false;
     }
 
     /**
