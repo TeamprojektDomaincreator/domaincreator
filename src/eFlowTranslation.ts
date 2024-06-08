@@ -1,4 +1,4 @@
-import {LineSegment, Point, UniquePoints, UnorderdLineSegment} from './line-tools';
+import { LineSegment, Point, UniquePoints, UnorderdLineSegment } from './line-tools';
 
 export function toEflowFormat(
     cycles: UnorderdLineSegment[][],
@@ -12,9 +12,6 @@ export function toEflowFormat(
         [minPoint[0] - 1000, maxPoint[1] + 1000],
     ];
 
-    const holes = simpleFindPointInPolygon(cycles);
-
-    console.log('outerPoints: ', outerPoints);
 
     const cyclesEflowIndices: number[][][] = cycles.map(() => []);
     let currIndex = 4;
@@ -23,6 +20,24 @@ export function toEflowFormat(
         cyclesEflowIndices[index].push(segmentPoints, pointOrder);
         currIndex += segmentPoints.length / 2;
     });
+
+    const eFlowHoles: EFlowHole[] = cyclesEflowIndices.map(([segmentPoints, _]) => {
+        const eFlowHole: EFlowHole = {
+            corners: [],
+            closed: true,
+        };
+        for (let index = 0; index < segmentPoints.length; index += 2) {
+            eFlowHole.corners.push(
+                {
+                    id: Math.random().toString(23).slice(2),
+                    x: segmentPoints[index],
+                    y: segmentPoints[index + 1],
+                },
+            );
+        }
+        return eFlowHole
+    });
+
     const [segmentPointsInner, pointOrderInner] = cyclesEflowIndices.reduce(
         (acc, [segmentPoints, pointOrder]) => {
             acc[0].push(...segmentPoints);
@@ -30,6 +45,12 @@ export function toEflowFormat(
             return acc;
         }
     );
+
+    const holes = simpleFindPointInPolygon(cycles);
+
+    segmentPointsToEFlow(segmentPointsInner);
+
+    console.log('outerPoints: ', outerPoints);
 
     const segmentPoints = [...outerPoints.flat(), ...segmentPointsInner];
     const pointOrder = [0, 1, 1, 2, 2, 3, 3, 0, ...pointOrderInner];
@@ -43,6 +64,8 @@ export function toEflowFormat(
     base.Domainpolygon.pointOrder = pointOrder;
 
     base.Domainpolygon.holes = holes;
+
+    base.HoleCorners = eFlowHoles;
 
     base.Domainpolygon.numberHoles = holes.length;
 
@@ -59,6 +82,11 @@ export function toEflowFormat(
 
     // should return base and the Components to display also the Convex Hull Outline in the ui
     return base;
+}
+function segmentPointsToEFlow(segmentPoints: number[]) {
+
+
+    return segmentPoints.map((point) => point);
 }
 
 function simpleFindPointInPolygon(cycles: UnorderdLineSegment[][]) {
@@ -77,7 +105,7 @@ function toEflowPoly(lines: UnorderdLineSegment[], currIndex: number) {
 
     const segmentPoints = points.map((p) => [p.x, p.y]).flat();
     const pointOrder = lines
-        .map(({start, end}) => {
+        .map(({ start, end }) => {
             return [points.indexOf(start) + currIndex, points.indexOf(end) + currIndex];
         })
         .flat();
@@ -86,6 +114,17 @@ function toEflowPoly(lines: UnorderdLineSegment[], currIndex: number) {
 }
 
 interface Hole {
+    x: number;
+    y: number;
+}
+
+interface EFlowHole {
+    corners: Corner[];
+    closed: true;
+}
+
+interface Corner {
+    id: string;
     x: number;
     y: number;
 }
@@ -131,4 +170,19 @@ const base = {
         holes: [] as Hole[],
     },
     Grid: {},
+    PolygonCorners: {
+        corners: [] as Corner[],
+        closed: true
+    },
+    HoleCorners: [] as EFlowHole[],
+    BackgroundImagePosition: {
+        name: "default",
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1
+    }
 };
