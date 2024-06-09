@@ -4,6 +4,7 @@
 // for explanation of orientation()
 
 import { Point, UniquePoints, UnorderdLineSegment } from "./line-tools";
+import { findOutlineOfConnectedCyclesLines } from "./outline";
 import { createLinesFromPoints } from "./utils";
 
 
@@ -58,8 +59,15 @@ function compare(p1: Point, p2: Point) {
 	}
 }
 
-// Prints convex hull of a set of n points.
-export function convexHull(outlines: UnorderdLineSegment[][]): UnorderdLineSegment[] {
+/**
+ * 
+ * @param outlines 
+ * @returns return remaining outlines and the convex hull 
+ */
+export function convexHull(outlines: UnorderdLineSegment[][]): {
+	hull: UnorderdLineSegment[],
+	remainingOutlines: UnorderdLineSegment[][]
+} {
 	const uniquePoints = new UniquePoints();
 	outlines.forEach((outline) => {
 		outline.forEach((line) => {
@@ -68,56 +76,157 @@ export function convexHull(outlines: UnorderdLineSegment[][]): UnorderdLineSegme
 		});
 	});
 
-	const points = uniquePoints.points;
-	// Find the bottommost point
-	const n = points.length;
-	let ymin = points[0].y;
-	let min = 0;
-	for (var i = 1; i < n; i++) {
-		let y = points[i].y;
+	const points = uniquePoints.getPointsSortedByY();
+	const res: Point[] = [];
+	res.push(points[0]);
+	res.push(points[1]);
 
-		// Pick the bottom-most or choose the left
-		// most point in case of tie
-		if ((y < ymin)
-			|| ((ymin == y)
-				&& (points[i].x < points[min].x))) {
-			ymin = points[i].y;
-			min = i;
+	let nextPoint;
+
+	while (!nextPoint?.equals(res[0])) {
+		const neighbors = points.filter(
+			(point) => !res[res.length - 2].equals(point) || !res[res.length - 1].equals(point)
+		);
+		if (!neighbors) {
+			break;
+		}
+
+		nextPoint = findPointWithBiggestClockwiseAngle(res[res.length - 2], res[res.length - 1], neighbors);
+
+		res.push(nextPoint);
+	}
+
+	const rawHull = createLinesFromPoints([...res]);
+	const result: UnorderdLineSegment[] = [];
+	const remainingOutlines: UnorderdLineSegment[][] = [];
+
+	// TODO (SAM) FIX THIS
+	// hull.forEach((hullLine) => {
+	// 	outlines.forEach((outline) => {
+	// 		if (includesObject(outline, hullLine)) {
+	// 			console.log('hull Line excluded and outline added')
+	// 			result.push(...outline.filter((line) => !includesObject(hull, line) && !includesObject(result, line)));
+	// 			return;
+	// 		} else if (!includesObject(result, hullLine)) {
+	// 			console.log('hull Line added')
+	// 			result.push(hullLine);
+	// 			remainingOutlines.push(outline);
+	// 		}
+	// 	});
+	// });
+	// return {
+	// 	customHull: result,
+	// 	remainingOutlines: remainingOutlines
+	// };
+
+	outlines.forEach((outline) => {
+		var touchesHull: boolean = false;
+		outline.forEach((line) => {
+			if (includesObject(rawHull, line)) {
+				result.push(...outline);
+				touchesHull = true;
+				return;
+			}
+
+		})
+
+		if (!touchesHull) {
+			remainingOutlines.push(outline);
+		}
+	});
+
+	return {
+		hull: findOutlineOfConnectedCyclesLines([mergeAndRemoveMatchingElements(result, rawHull)]),
+		remainingOutlines: remainingOutlines
+	};
+}
+
+
+/**
+ * Finds the point with the biggest clockwise angle.
+ * @function findPointWithBiggestClockwiseAngle
+ * @param {Point} firstPoint - The first point.
+ * @param {Point} startPoint - The start point.
+ * @param {Point[]} neighbors - An array of neighboring points.
+ * @returns {Point} - The point with the biggest clockwise angle.
+ */
+function findPointWithBiggestClockwiseAngle(
+	firstPoint: Point,
+	startPoint: Point,
+	neighbors: Point[]
+): Point {
+	let maxAngle = 0;
+	let maxPoint = neighbors[0];
+
+	for (let point of neighbors) {
+		const angle = calculateAngle(firstPoint, startPoint, point);
+		if (angle > maxAngle) {
+			maxAngle = angle;
+			maxPoint = point;
+		} else if (angle === maxAngle) {
+			const dist1 = Math.sqrt((point.x - startPoint.x) ** 2 + (point.y - startPoint.y) ** 2);
+			const dist2 = Math.sqrt((maxPoint.x - startPoint.x) ** 2 + (maxPoint.y - startPoint.y) ** 2);
+			if (dist1 < dist2) {
+				maxPoint = point;
+			}
 		}
 	}
 
-	// Place the bottom-most point at first position
-	points[0], points[min] = points[min], points[0];
+	return maxPoint;
+}
 
-	// Sort n-1 points with respect to the first point.
-	// A point p1 comes before p2 in sorted output if p2
-	// has larger polar angle (in counterclockwise
-	// direction) than p1
-	points.sort(compare);
+/**
+ * Calculates the angle between three points.
+ * @function calculateAngle
+ * @param {Point} p1 - The first point.
+ * @param {Point} p2 - The second point.
+ * @param {Point} p3 - The third point.
+ * @returns {number} - The calculated angle.
+ */
+function calculateAngle(p1: Point, p2: Point, p3: Point): number {
+	const u = [p1.x - p2.x, p1.y - p2.y];
+	const v = [p3.x - p2.x, p3.y - p2.y];
 
-	// Create an empty stack and push first three points
-	// to it.
-	let S = [];
-	S.push(points[0]);
-	S.push(points[1]);
-	S.push(points[2]);
+	const dotProduct = u[0] * v[0] + u[1] * v[1]; // skalar
 
-	// Process remaining n-3 points
-	for (var i = 3; i < n; i++) {
-		// Keep removing top while the angle formed by
-		// points next-to-top, top, and points[i] makes
-		// a non-left turn
-		while (true) {
-			if (S.length < 2)
-				break;
-			const orient = orientation(nextToTop(S), S[S.length - 1], points[i]);
-			if (orient >= 2 || orient === 0)
-				break;
-			S.pop();
-		}
+	const det = u[0] * v[1] - u[1] * v[0];
 
-		S.push(points[i]);
+	const angle = Math.atan2(det, dotProduct) * (180 / Math.PI);
+
+	let resAngle;
+	if (angle > 0) {
+		resAngle = 360 - angle;
+	} else if (angle < 0) {
+		resAngle = angle * -1;
+	} else {
+		resAngle = angle;
 	}
 
-	return createLinesFromPoints([...S.reverse()]);
+	return resAngle;
+}
+
+
+function mergeAndRemoveMatchingElements(convexHull: UnorderdLineSegment[], result: UnorderdLineSegment[]): UnorderdLineSegment[] {
+	const matchingElements = new Set<UnorderdLineSegment>();
+
+	for (const element1 of convexHull) {
+		for (const element2 of result) {
+			if (element1.equals(element2)) {
+				matchingElements.add(element1);
+			}
+		}
+	}
+
+	const filterMatching = (element: UnorderdLineSegment) => !includesObject([...matchingElements], element);
+
+	const filteredList1 = convexHull.filter(filterMatching);
+	const filteredList2 = result.filter(filterMatching);
+
+	const mergedList = [...filteredList1, ...filteredList2];
+
+	return mergedList;
+}
+
+function includesObject(arr: object[], obj: object): boolean {
+	return arr.some(arrObj => JSON.stringify(arrObj) === JSON.stringify(obj));
 }

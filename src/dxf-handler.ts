@@ -235,11 +235,11 @@ export class DxfHandler {
         );
         
 
-        // Here calculate outer convex hull
-        const simpleConvexHull = convexHull(outlines);
-        // needs to get outer convex hull instead of min and max points
-        const {base, cyclesWithOutline} = toEflowFormat(outlines, simpleConvexHull);
+        time = performance.now() - time;
+        console.log(`Cycle and Outline: Took ${time.toPrecision(4)} ms`);
+        const {hull, remainingOutlines} = convexHull(outlines);
 
+        const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
         console.log('eFlowFormat: ', base);
 
         return cyclesWithOutline.map((cycle) =>
