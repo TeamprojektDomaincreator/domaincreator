@@ -21,8 +21,22 @@ const scaleDown = document.getElementById('scaleDownButton');
 const fileInput = document.getElementById('fileInput');
 const extractButton = document.getElementById('extract');
 const mainCanvas = document.getElementById('myCanvas') as HTMLCanvasElement;
+const downloadJsonButton = document.getElementById('downloadJson')
 
 // @todo: Add info on current scaling faktor and current layer name to UI
+
+downloadJsonButton!.addEventListener('click', () => {
+    const extractData = dxfHandler.extractObjects(selectedLayers);
+    const json = JSON.stringify(extractData.base);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'extracted.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+});
 
 drawButton!.addEventListener('click', () => {
     fileInput!.click();
@@ -49,7 +63,7 @@ extractButton!.addEventListener('click', () => {
         scaleFactor: mainCanvasScale,
     };
 
-    connectedGraph.forEach((lines) => {
+    connectedGraph.lines.forEach((lines) => {
         const randomColor =
             'rgba(' +
             Math.floor(Math.random() * 256) +
