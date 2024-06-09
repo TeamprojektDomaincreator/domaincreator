@@ -211,14 +211,34 @@ export class DxfHandler {
         });
         const res: LineSegment[] = sweepLine(unprocessedLines);
 
+        /*
+        const missingLine = res.filter((line) => {
+            line.start.x > 3437 && line.start.x < 3450 && line.end.y > 3235 && line.end.y < 3250 || line.end.x > 3437 && line.end.x < 3450 && line.end.y > 3235 && line.end.y < 3250;
+        });
+        console.log('missingLine: ', missingLine);
+        */
+
         const matrix = new SpaceEfficientAdjacencyMatrix(res);
 
         //matrix.logMemorySavings();
 
         const connectedGraphs = matrix.convertToConnectedGraph();
 
+        let time = performance.now();
         const cycles = connectedGraphs.map(findCycles);
 
+        /*
+        return cycles.flatMap((connectedCyclesOfOneGraph) =>
+            connectedCyclesOfOneGraph.map((connectedCycle) =>
+                connectedCycle.cycles.flatMap((cycle) =>
+                    cycle.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
+                )
+            )
+        );
+        */
+
+
+        console.log('cycles: ', cycles);
         const outlines = cycles.flatMap((connectedCyclesOfOneGraph) =>
             connectedCyclesOfOneGraph.map((connectedCycle) =>
                 findOutlineOfConnectedCyclesLines(connectedCycle.cycles)
@@ -226,9 +246,9 @@ export class DxfHandler {
         );
         
 
-        // Here calculate outer convex hull
+        time = performance.now() - time;
+        console.log(`Cycle and Outline: Took ${time.toPrecision(4)} ms`);
         const simpleConvexHull = convexHull(outlines);
-        // needs to get outer convex hull instead of min and max points
         const {base, cyclesWithOutline} = toEflowFormat(outlines, simpleConvexHull);
 
         console.log('eFlowFormat: ', base);
