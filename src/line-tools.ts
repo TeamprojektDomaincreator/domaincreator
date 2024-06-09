@@ -78,7 +78,9 @@ export class LineSegment {
      * @returns A list of of smalles possible segments.
      */
     getSmallestLines(): LineSegment[] {
-        if (this.intersections.points.length === 0) return [this];
+        if (this.intersections.points.length === 0) {
+            return [this];
+        }
         const res: LineSegment[] = [];
         let lastPoint = this.start;
         this.intersections.points.forEach((p) => {
@@ -356,7 +358,7 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment) {
     if (l1_slope === l2_slope || Math.abs(l1_slope - l2_slope) < EPSILON) {
         if (l1_slope === 0) {
             if (l1.start.y !== l2.start.y) return;
-            if (l1.start.x > l2.end.x || l2.start.x > l1.end.x) return;
+            if (l1.start.x >= l2.end.x || l2.start.x >= l1.end.x) return;
             const points: Point[] = [l1.start, l1.end];
             if (!l2.start.equals(l1.start) && !l2.start.equals(l1.end))
                 points.push(l2.start);
@@ -377,7 +379,7 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment) {
         }
         if (l1_slope === Infinity) {
             if (l1.start.x !== l2.start.x) return;
-            if (l1.start.y > l2.end.y || l2.start.y > l1.end.y) return;
+            if (l1.start.y >= l2.end.y || l2.start.y >= l1.end.y) return;
             const points: Point[] = [l1.start, l1.end];
             if (!l2.start.equals(l1.start) && !l2.start.equals(l1.end))
                 points.push(l2.start);
@@ -413,7 +415,7 @@ function splitOnIntersect(l1: LineSegment, l2: LineSegment) {
         if (Math.abs(lambdaX - lambdaY) > EPSILON) {
             return;
         }
-        if (l1.start.x > l2.end.x || l2.start.x > l1.end.x) return;
+        if (l1.start.x >= l2.end.x || l2.start.x >= l1.end.x) return;
         /* Since we know that lines intersect, we just take all points, remove duplicates and connect them in sorted order */
         const points: Point[] = [l1.start, l1.end];
         if (!l2.start.equals(l1.start) && !l2.start.equals(l1.end)) points.push(l2.start);
