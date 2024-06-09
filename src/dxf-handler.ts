@@ -248,9 +248,9 @@ export class DxfHandler {
 
         time = performance.now() - time;
         console.log(`Cycle and Outline: Took ${time.toPrecision(4)} ms`);
-        const simpleConvexHull = convexHull(outlines);
-        const {base, cyclesWithOutline} = toEflowFormat(outlines, simpleConvexHull);
+        const {hull, remainingOutlines} = convexHull(outlines);
 
+        const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
         console.log('eFlowFormat: ', base);
 
         return cyclesWithOutline.map((cycle) =>

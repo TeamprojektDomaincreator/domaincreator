@@ -53,6 +53,13 @@ export class UnorderdLineSegment {
         this.start = p1;
         this.end = p2;
     }
+
+    equals(line: UnorderdLineSegment): boolean {
+        return (
+            (this.start.equals(line.start) && this.end.equals(line.end)) ||
+            (this.start.equals(line.end) && this.end.equals(line.start))
+        );
+    }
 }
 
 /**
