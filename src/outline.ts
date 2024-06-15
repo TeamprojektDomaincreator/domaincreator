@@ -71,6 +71,9 @@ function hull(lines: LineSegment[]): UnorderdLineSegment[] {
         if (fNeighbors.length === 0) {
             break;
         }
+
+        /* 
+        // Debugging
         console.log('logData: ', {
             res: [...res],
             firstPoint: res[res.length - 2],
@@ -78,10 +81,13 @@ function hull(lines: LineSegment[]): UnorderdLineSegment[] {
             fNeighbors: fNeighbors,
             unfilterdNeighbors: neighbors,
         });
+        */
 
         const nextPointsAngles = fNeighbors.map((point) =>
             calculateAngle(res[res.length - 2], res[res.length - 1], point)
         );
+        /*
+        // Debugging
         console.log(
             'nextPoints: ',
             nextPointsAngles.map((angle, index) => ({
@@ -89,6 +95,7 @@ function hull(lines: LineSegment[]): UnorderdLineSegment[] {
                 angle,
             }))
         );
+        */
 
         nextPoint = findPointWithBiggestClockwiseAngle(
             res[res.length - 2],
