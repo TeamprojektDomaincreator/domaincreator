@@ -11,7 +11,7 @@ import {
     UniquePoints,
     UnorderdLineSegment,
 } from './line-tools';
-import {createLinesFromPoints} from './utils';
+import {AdjacencyMatrix, createLinesFromPoints} from './utils';
 
 /**
  * Finds the outline of connected cycles in a graph.
@@ -181,56 +181,4 @@ function calculateAngle(p1: Point, p2: Point, p3: Point): number {
     }
 
     return resAngle;
-}
-
-/**
- * Class representing an adjacency matrix for a graph.
- * @class
- */
-class AdjacencyMatrix {
-    points: Point[];
-
-    matrix: boolean[][];
-    constructor(points: Point[]) {
-        this.points = points;
-        this.matrix = new Array(points.length)
-            .fill(null)
-            .map(() => new Array(points.length).fill(false));
-    }
-
-    /**
-     * Adds an edge between two points in the graph.
-     * @param {Point} p1 - The first point.
-     * @param {Point} p2 - The second point.
-     */
-    addEdge(p1: Point, p2: Point) {
-        const i1 = this.points.indexOf(p1);
-        const i2 = this.points.indexOf(p2);
-        this.matrix[i1][i2] = true;
-        this.matrix[i2][i1] = true;
-    }
-
-    removeEdge(p1: Point, p2: Point) {
-        const i1 = this.points.indexOf(p1);
-        const i2 = this.points.indexOf(p2);
-        this.matrix[i1][i2] = false;
-        this.matrix[i2][i1] = false;
-    }
-
-    /**
-     * Gets the neighboring points of a given point.
-     * @param {Point} point - The point to get the neighbors of.
-     * @returns {Point[]} - An array of neighboring points.
-     */
-    getNeighbors(point: Point): Point[] {
-        const index = this.points.indexOf(point);
-        const neighbors = [];
-        for (let i = 0; i < this.points.length; i++) {
-            if (this.matrix[index][i]) {
-                neighbors.push(this.points[i]);
-            }
-        }
-
-        return neighbors;
-    }
 }
