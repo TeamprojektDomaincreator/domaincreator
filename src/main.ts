@@ -40,8 +40,8 @@ extractButton!.addEventListener('click', () => {
         ctx: mainCanvasCtx,
         width: mainCanvas.width,
         height: mainCanvas.height,
-        minPoint: minPoint,
-        maxPoint: maxPoint,
+        minPoint: minPoint.map(n => n -100),
+        maxPoint: maxPoint.map(n => n + 100),
         scaleFactor: mainCanvasScale,
     };
 

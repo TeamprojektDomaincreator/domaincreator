@@ -109,6 +109,10 @@ export class LineSegment {
         return this.start.equals(line.start) && this.end.equals(line.end);
     }
 
+    equalsReversed(line: LineSegment): boolean {
+        return this.start.equals(line.end) && this.end.equals(line.start);
+    }
+
     toString(): string {
         return `${this.start.toString()} -> ${this.end.toString()}`;
     }

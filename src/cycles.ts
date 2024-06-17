@@ -42,26 +42,38 @@ export function findCycles(graph: LineSegment[]): ConnectedCycle[] {
  */
 function connectedCycles(cycles: LineSegment[][]): ConnectedCycle[] {
     const groups: ConnectedCycle[] = [];
+    let countOfNoGroupfound = 0;
 
     cycles.forEach((cycle) => {
+        let foundGroup = false;
         cycle.forEach((line) => {
             if (groups.length === 0) {
                 groups.push({cycles: [cycle]});
                 return;
+            } else {
+                groups.forEach((group) => {
+                    if (
+                        group.cycles.some((groupCycle) =>
+                            groupCycle.some((groupLine) => groupLine.equals(line))
+                        )
+                    ) {
+                        group.cycles.push(cycle);
+                        foundGroup = true;
+                    }
+                });
             }
-            groups.forEach((group) => {
-                if (
-                    group.cycles.some((groupCycle) =>
-                        groupCycle.some((groupLine) => groupLine.equals(line))
-                    )
-                ) {
-                    group.cycles.push(cycle);
-                }
-            });
         });
+        if(!foundGroup) {
+            countOfNoGroupfound++
+            groups.push({cycles: [cycle]})
+        }
     });
-
+    if (countOfNoGroupfound > 0) {
+        return connectedCycles(groups.flatMap(cycles => cycles.cycles))
+    } else {
     return groups;
+    }
+
 }
 
 /**
