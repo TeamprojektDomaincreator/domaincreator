@@ -29,9 +29,21 @@ export function findCycles(graph: LineSegment[]): ConnectedCycle[] {
         }
     }
 
-    const conCycles = connectedCycles(allCycles);
+    const conCycles = connectedViaGraph(allCycles);
 
     return conCycles;
+}
+
+function connectedViaGraph(cycle: LineSegment[][]) {
+    const matrix: SpaceEfficientAdjacencyMatrix = new SpaceEfficientAdjacencyMatrix(cycle.flat())
+    const connect = matrix.convertToConnectedGraph()
+    const res: ConnectedCycle[] = [];
+    console.log(connect.length)
+    connect.forEach((cc,index) =>{
+        res.push({cycles: [cc]})
+
+    })
+    return res
 }
 
 /**
