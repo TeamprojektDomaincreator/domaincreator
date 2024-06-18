@@ -210,20 +210,10 @@ export class DxfHandler {
         });
         const res: LineSegment[] = sweepLine(unprocessedLines);
 
-        /* 
-        // Debugging
-        const missingLine = res.filter((line) => {
-            line.start.x > 1050 && line.start.x < 1058 && line.end.y > 22 && line.end.y < 27 || line.end.x > 1050 && line.end.x < 1058 && line.end.y > 22 && line.end.y < 27;
-        });
-        console.log('missingLine: ', missingLine);
-        */
-
         const matrix = new SpaceEfficientAdjacencyMatrix(res);
 
 
         const connectedGraphs = matrix.convertToConnectedGraph();
-
-        let time = performance.now();
         const cycles = connectedGraphs.map(findCycles);
 
 
@@ -233,8 +223,6 @@ export class DxfHandler {
             )
         );
 
-        time = performance.now() - time;
-        console.log(`Cycle and Outline: Took ${time.toPrecision(4)} ms`);
 
         const [minPoint, maxPoint] = this.minMaxPointsForLayers(layerIndices);
 

@@ -29,12 +29,12 @@ export function findCycles(graph: LineSegment[]): ConnectedCycle[] {
         }
     }
 
-    const conCycles = connectedViaGraph(allCycles);
+    const conCycles = connectedCyclesViaGraph(allCycles);
 
     return conCycles;
 }
 
-function connectedViaGraph(cycle: LineSegment[][]) {
+function connectedCyclesViaGraph(cycle: LineSegment[][]) {
     const matrix: SpaceEfficientAdjacencyMatrix = new SpaceEfficientAdjacencyMatrix(cycle.flat())
     const connect = matrix.convertToConnectedGraph()
     const res: ConnectedCycle[] = [];
@@ -44,48 +44,6 @@ function connectedViaGraph(cycle: LineSegment[][]) {
 
     })
     return res
-}
-
-/**
- * Groups cycles that are connected.
- * @function connectedCycles
- * @param {LineSegment[][]} cycles - An array of cycles, where each cycle is an array of line segments.
- * @returns {ConnectedCycle[]} - An array of connected cycles.
- */
-function connectedCycles(cycles: LineSegment[][]): ConnectedCycle[] {
-    const groups: ConnectedCycle[] = [];
-    let countOfNoGroupfound = 0;
-
-    cycles.forEach((cycle) => {
-        let foundGroup = false;
-        cycle.forEach((line) => {
-            if (groups.length === 0) {
-                groups.push({cycles: [cycle]});
-                return;
-            } else {
-                groups.forEach((group) => {
-                    if (
-                        group.cycles.some((groupCycle) =>
-                            groupCycle.some((groupLine) => groupLine.equals(line))
-                        )
-                    ) {
-                        group.cycles.push(cycle);
-                        foundGroup = true;
-                    }
-                });
-            }
-        });
-        if(!foundGroup) {
-            countOfNoGroupfound++
-            groups.push({cycles: [cycle]})
-        }
-    });
-    if (countOfNoGroupfound > 0) {
-        return connectedCycles(groups.flatMap(cycles => cycles.cycles))
-    } else {
-    return groups;
-    }
-
 }
 
 /**
