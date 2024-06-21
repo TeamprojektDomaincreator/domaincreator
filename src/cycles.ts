@@ -1,4 +1,5 @@
-import {LineSegment, Point, SpaceEfficientAdjacencyMatrix} from './line-tools';
+import {LineSegment, Point, SpaceEfficientAdjacencyMatrix, UniquePoints} from './line-tools';
+import { AdjacencyMatrix } from './utils';
 
 /**
  * Interface for connected cycles.
@@ -16,16 +17,26 @@ interface ConnectedCycle {
  * @returns {ConnectedCycle[]} - An array of connected cycles found in the graph.
  */
 export function findCycles(graph: LineSegment[]): ConnectedCycle[] {
-    const matrix = new SpaceEfficientAdjacencyMatrix(graph);
+    const uniquePoints = new UniquePoints();
+    graph.forEach((line) => {
+        uniquePoints.add(line.start);
+        uniquePoints.add(line.end);
+    });
+
+    const matrix = new AdjacencyMatrix(uniquePoints.points);
+
+    graph.forEach((line) => {
+        matrix.addEdge(line.start, line.end);
+    });
 
     const allCycles: LineSegment[][] = [];
 
     const stack: Point[] = [];
-    const visited: boolean[] = new Array(matrix.points.points.length).fill(false);
+    const visited: boolean[] = new Array(matrix.points.length).fill(false);
 
-    for (let i = 0; i < matrix.points.points.length; i++) {
+    for (let i = 0; i < matrix.points.length; i++) {
         if (!visited[i]) {
-            _dfsForCycle(i, visited, -1, stack, allCycles, matrix.points.points, matrix);
+            _dfsForCycle(i, visited, -1, stack, allCycles, matrix.points, matrix);
         }
     }
 
@@ -38,7 +49,6 @@ function connectedCyclesViaGraph(cycle: LineSegment[][]) {
     const matrix: SpaceEfficientAdjacencyMatrix = new SpaceEfficientAdjacencyMatrix(cycle.flat())
     const connect = matrix.convertToConnectedGraph()
     const res: ConnectedCycle[] = [];
-    console.log(connect.length)
     connect.forEach((cc,index) =>{
         res.push({cycles: [cc]})
 
@@ -62,13 +72,13 @@ function _dfsForCycle(
     stack: Point[],
     allCycles: LineSegment[][],
     points: Point[],
-    matrix: SpaceEfficientAdjacencyMatrix
+    matrix: AdjacencyMatrix
 ) {
     visited[vertexIndex] = true;
     stack.push(points[vertexIndex]);
 
     for (let i = 0; i < points.length; i++) {
-        if (matrix.getCell(vertexIndex, i)) {
+        if (matrix.getCellByIndex(vertexIndex, i)) {
             if (!visited[i]) {
                 _dfsForCycle(i, visited, vertexIndex, stack, allCycles, points, matrix);
             } else if (i !== parentIndex) {

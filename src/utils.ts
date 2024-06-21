@@ -62,6 +62,11 @@ export class AdjacencyMatrix {
         this.matrix[i2][i1] = false;
     }
 
+    getCellByIndex(i1: number, i2: number) {
+        return this.matrix[i1][i2];
+    }
+
+
     /**
      * Gets the neighboring points of a given point.
      * @param {Point} point - The point to get the neighbors of.

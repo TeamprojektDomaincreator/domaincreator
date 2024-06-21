@@ -7,7 +7,6 @@
 import {
     LineSegment,
     Point,
-    SpaceEfficientAdjacencyMatrix,
     UniquePoints,
     UnorderdLineSegment,
 } from './line-tools';
@@ -110,28 +109,6 @@ function hull(lines: LineSegment[]): UnorderdLineSegment[] {
     return createLinesFromPoints(res);
 }
 
-/**
- * Sorts an array of line segments by the start point of each line.
- * The primary sorting criterion is the y-coordinate of the start point.
- * If two lines have the same y-coordinate for the start point, the x-coordinate is used.
- *
- * @function sortLinesByStartPoint
- * @param {LineSegment[]} lines - An array of line segments to be sorted.
- * @returns {LineSegment[]} - A new array of line segments sorted by the start point.
- */
-function sortLinesByStartPoint(lines: LineSegment[]): LineSegment[] {
-    let sortedLines = [...lines]; // Create a new array to avoid modifying the original array
-
-    sortedLines.sort((line1, line2) => {
-        if (line1.start.y !== line2.start.y) {
-            return line1.start.y - line2.start.y;
-        } else {
-            return line1.start.x - line2.start.x;
-        }
-    });
-
-    return sortedLines;
-}
 
 /**
  * Finds the point with the biggest clockwise angle.

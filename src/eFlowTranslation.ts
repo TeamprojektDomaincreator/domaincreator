@@ -14,8 +14,6 @@ export function toEflowFormat(
 
     const holes = simpleFindPointInPolygon(cycles);
 
-    console.log('outerPoints: ', outerPoints);
-
     const cyclesEflowIndices: number[][][] = cycles.map(() => []);
     let currIndex = 4;
     cycles.forEach((cycle, index) => {
