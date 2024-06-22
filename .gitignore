@@ -1,3 +1,5 @@
 www/**/*.js
 node_modules/
 .firebase
+temp/
+.DS_Store

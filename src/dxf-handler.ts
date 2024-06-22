@@ -1,4 +1,7 @@
+import {findCycles} from './cycles';
+import {toEflowFormat} from './eFlowTranslation';
 import {SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment} from './line-tools';
+import {findOutlineOfConnectedCyclesLines} from './outline';
 /**
  * Represents a DXF Layer
  */
@@ -208,22 +211,29 @@ export class DxfHandler {
         const res: LineSegment[] = sweepLine(unprocessedLines);
 
         const matrix = new SpaceEfficientAdjacencyMatrix(res);
-        //matrix.logMemorySavings();
-        const indices = matrix.convertToConnectedGraph();
 
-        const res2: number[][] = [];
-        let index = -1;
-        let lineCount = 0;
-        indices.forEach((i) => {
-            lineCount += i.length;
-            res2.push([]);
-            index++;
-            for (const s of i) {
-                if (s.start.equals(s.end)) continue;
-                res2[index].push(s.start.x, s.start.y, s.end.x, s.end.y);
-            }
-        });
-        return res2;
+
+        const connectedGraphs = matrix.convertToConnectedGraph();
+        const cycles = connectedGraphs.map(findCycles);
+
+
+        const outlines = cycles.flatMap((connectedCyclesOfOneGraph) =>
+            connectedCyclesOfOneGraph.map((connectedCycle) =>
+                findOutlineOfConnectedCyclesLines(connectedCycle.cycles)
+            )
+        );
+
+
+        const [minPoint, maxPoint] = this.minMaxPointsForLayers(layerIndices);
+
+        const eFlowFormat = toEflowFormat(outlines, minPoint, maxPoint);
+
+        const outlineComponents = outlines.map((outline) =>
+            outline
+                .flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
+        );
+
+        return outlineComponents;
     }
 
     _scaleData(layer: Layer): [number[], number] {
@@ -256,7 +266,7 @@ export class DxfHandler {
             minPoint[1] = Math.min(minPoint[1], ref.minPoint[1]);
             maxPoint[0] = Math.max(maxPoint[0], ref.maxPoint[0]);
             maxPoint[1] = Math.max(maxPoint[1], ref.maxPoint[1]);
-        })
+        });
         return [minPoint, maxPoint];
     }
 
@@ -264,7 +274,7 @@ export class DxfHandler {
         let count = 0;
         layerIndices.forEach((i) => {
             count += this.layers[i].lines.length / 4;
-        })
+        });
         return count;
     }
 }

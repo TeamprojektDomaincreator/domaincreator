@@ -39,6 +39,20 @@ export class Point {
     equals(p: Point): boolean {
         return this.x === p.x && this.y === p.y;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y})`;
+    }
+}
+
+export class UnorderdLineSegment {
+    start: Point;
+    end: Point;
+
+    constructor(p1: Point, p2: Point) {
+        this.start = p1;
+        this.end = p2;
+    }
 }
 
 /**
@@ -94,6 +108,14 @@ export class LineSegment {
     equals(line: LineSegment): boolean {
         return this.start.equals(line.start) && this.end.equals(line.end);
     }
+
+    equalsReversed(line: LineSegment): boolean {
+        return this.start.equals(line.end) && this.end.equals(line.start);
+    }
+
+    toString(): string {
+        return `${this.start.toString()} -> ${this.end.toString()}`;
+    }
 }
 
 /**
@@ -129,6 +151,30 @@ export class UniquePoints {
 
         // Insert the point in the correct position
         this.points.splice(lower, 0, p);
+    }
+
+    /**
+     * The `getPointsSortedByY` method returns a new array of points sorted by their y values.
+     * If two points have the same y value, they are sorted by their x values.
+     * @returns {Point[]} - An array of points sorted by their y values.
+     */
+    getPointsSortedByY(): Point[] {
+        return [...this.points].sort((a, b) => {
+            if (a.y < b.y) {
+                return -1;
+            }
+            if (a.y > b.y) {
+                return 1;
+            }
+            // If y values are equal, sort by x
+            if (a.x < b.x) {
+                return -1;
+            }
+            if (a.x > b.x) {
+                return 1;
+            }
+            return 0;
+        });
     }
 
     indexOf(p: Point): number {
