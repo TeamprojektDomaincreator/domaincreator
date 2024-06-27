@@ -7,19 +7,18 @@
 import {
     LineSegment,
     Point,
-    SpaceEfficientAdjacencyMatrix,
     UniquePoints,
     UnorderdLineSegment,
 } from './line-tools';
-import {createLinesFromPoints, AdjacencyMatrix } from './utils';
+import {AdjacencyMatrix, createLinesFromPoints} from './utils';
 
 /**
  * Finds the outline of connected cycles in a graph.
  * @function findOutlineOfConnectedCyclesLines
- * @param {UnorderdLineSegment[][]} cycles - An array of cycles, where each cycle is an array of line segments.
+ * @param {LineSegment[][]} cycles - An array of cycles, where each cycle is an array of line segments.
  * @returns {UnorderdLineSegment[]} - An array of unordered line segments representing the outline of the connected cycles.
  */
-export function findOutlineOfConnectedCyclesLines(cycles: UnorderdLineSegment[][]) {
+export function findOutlineOfConnectedCyclesLines(cycles: LineSegment[][]) {
     const cyclesFlat = cycles.flat();
     return hull(cyclesFlat);
 }
@@ -27,11 +26,11 @@ export function findOutlineOfConnectedCyclesLines(cycles: UnorderdLineSegment[][
 /**
  * Finds the convex hull of a set of lines.
  * @function hull
- * @param {UnorderdLineSegment[]} lines - An array of line segments.
+ * @param {LineSegment[]} lines - An array of line segments.
  * @returns {UnorderdLineSegment[]} - An array of unordered line segments representing the convex hull.
  * @private
  */
-function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
+function hull(lines: LineSegment[]): UnorderdLineSegment[] {
     const res: Point[] = [];
 
     const uniquePoints = new UniquePoints();
@@ -71,6 +70,9 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
         if (fNeighbors.length === 0) {
             break;
         }
+
+        /* 
+        // Debugging
         console.log('logData: ', {
             res: [...res],
             firstPoint: res[res.length - 2],
@@ -78,10 +80,13 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
             fNeighbors: fNeighbors,
             unfilterdNeighbors: neighbors,
         });
+        */
 
         const nextPointsAngles = fNeighbors.map((point) =>
             calculateAngle(res[res.length - 2], res[res.length - 1], point)
         );
+        /*
+        // Debugging
         console.log(
             'nextPoints: ',
             nextPointsAngles.map((angle, index) => ({
@@ -89,6 +94,7 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
                 angle,
             }))
         );
+        */
 
         nextPoint = findPointWithBiggestClockwiseAngle(
             res[res.length - 2],
@@ -103,28 +109,6 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
     return createLinesFromPoints(res);
 }
 
-/**
- * Sorts an array of line segments by the start point of each line.
- * The primary sorting criterion is the y-coordinate of the start point.
- * If two lines have the same y-coordinate for the start point, the x-coordinate is used.
- *
- * @function sortLinesByStartPoint
- * @param {LineSegment[]} lines - An array of line segments to be sorted.
- * @returns {LineSegment[]} - A new array of line segments sorted by the start point.
- */
-function sortLinesByStartPoint(lines: LineSegment[]): LineSegment[] {
-    let sortedLines = [...lines]; // Create a new array to avoid modifying the original array
-
-    sortedLines.sort((line1, line2) => {
-        if (line1.start.y !== line2.start.y) {
-            return line1.start.y - line2.start.y;
-        } else {
-            return line1.start.x - line2.start.x;
-        }
-    });
-
-    return sortedLines;
-}
 
 /**
  * Finds the point with the biggest clockwise angle.

@@ -62,6 +62,11 @@ export class AdjacencyMatrix {
         this.matrix[i2][i1] = false;
     }
 
+    getCellByIndex(i1: number, i2: number) {
+        return this.matrix[i1][i2];
+    }
+
+
     /**
      * Gets the neighboring points of a given point.
      * @param {Point} point - The point to get the neighbors of.
@@ -69,6 +74,10 @@ export class AdjacencyMatrix {
      */
     getNeighbors(point: Point): Point[] {
         const index = this.points.indexOf(point);
+        if (index === -1) {
+            console.error('Point not found in matrix');
+            return [];
+        }
         const neighbors = [];
         for (let i = 0; i < this.points.length; i++) {
             if (this.matrix[index][i]) {
