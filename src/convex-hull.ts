@@ -1,63 +1,6 @@
-// JavaScript program to find convex hull of a set of
-// points. Refer
-// https://www.geeksforgeeks.org/orientation-3-ordered-points/
-// for explanation of orientation()
-
 import { Point, UniquePoints, UnorderdLineSegment } from "./line-tools";
 import { findOutlineOfConnectedCyclesLines } from "./outline";
 import { createLinesFromPoints } from "./utils";
-
-
-// A global point needed for sorting points with reference
-// to the first point
-let p0
-	= new Point(0, 0);
-
-// A utility function to find next to top in a stack
-function nextToTop(S: Point[]) { return S[S.length - 2]; }
-
-// A utility function to return square of distance
-// between p1 and p2
-function distSq(p1: Point, p2: Point) {
-	return ((p1.x - p2.x) * (p1.x - p2.x)
-		+ (p1.y - p2.y) * (p1.y - p2.y));
-}
-
-// To find orientation of ordered triplet (p, q, r).
-// The function returns following values
-// 0 --> p, q and r are collinear
-// 1 --> Clockwise
-// 2 --> Counterclockwise
-function orientation(p: Point, q: Point, r: Point) {
-	let val = ((q.y - p.y) * (r.x - q.x)
-		- (q.x - p.x) * (r.y - q.y));
-	if (val == 0)
-		return 0; // collinear
-	else if (val > 0)
-		return 1; // clock wise
-	else
-		return 2; // counterclock wise
-}
-
-// A function used by cmp_to_key function to sort an array
-// of points with respect to the first point
-function compare(p1: Point, p2: Point) {
-
-	// Find orientation
-	let o = orientation(p0, p1, p2);
-	if (o == 0) {
-		if (distSq(p0, p2) >= distSq(p0, p1))
-			return -1;
-		else
-			return 1;
-	}
-	else {
-		if (o == 2)
-			return -1;
-		else
-			return 1;
-	}
-}
 
 /**
  * 
@@ -99,7 +42,7 @@ export function convexHull(outlines: UnorderdLineSegment[][]): {
 	const rawHull = createLinesFromPoints([...res]);
 	const result: UnorderdLineSegment[] = [];
 	const remainingOutlines: UnorderdLineSegment[][] = [];
-	
+
 	outlines.forEach((outline) => {
 		var touchesHull: boolean = false;
 		outline.forEach((line) => {
