@@ -21,8 +21,8 @@ export function toEflowFormat(
             eFlowHole.corners.push(
                 {
                     id: Math.random().toString(23).slice(2),
-                    x: segmentPoints[index] / 100,
-                    y: segmentPoints[index + 1] / 100,
+                    x: segmentPoints[index],
+                    y: segmentPoints[index + 1],
                 },
             );
         }
@@ -39,7 +39,7 @@ export function toEflowFormat(
 
     const holes = simpleFindPointInPolygon(cycles);
 
-    base.Domainpolygon.segmentPoints = segmentPoints.map((point) => point / 100);
+    base.Domainpolygon.segmentPoints = segmentPoints
 
     base.Domainpolygon.numberPoints = segmentPoints.length / 2;
 

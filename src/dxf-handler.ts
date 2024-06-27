@@ -88,8 +88,6 @@ export class DxfHandler {
             return;
         }
 
-        let time = performance.now();
-
         /* Windows and Mac/Linux handle return differently */
         const returnChar = fileText.indexOf('\r') === -1 ? '\n' : '\r';
         const entity = ENTITY + returnChar;
@@ -147,10 +145,6 @@ export class DxfHandler {
                 parseFloat(fileText.substring(y2, fileText.indexOf(returnChar, y2)))
             );
         }
-        time = performance.now() - time;
-        console.log(
-            `DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`
-        );
 
         /* Find the minimum and maximum Points */
         for (let i = 0; i < this.layers.length; i++) {
@@ -211,47 +205,22 @@ export class DxfHandler {
         });
         const res: LineSegment[] = sweepLine(unprocessedLines);
 
-        /*
-        const missingLine = res.filter((line) => {
-            line.start.x > 3437 && line.start.x < 3450 && line.end.y > 3235 && line.end.y < 3250 || line.end.x > 3437 && line.end.x < 3450 && line.end.y > 3235 && line.end.y < 3250;
-        });
-        console.log('missingLine: ', missingLine);
-        */
-
         const matrix = new SpaceEfficientAdjacencyMatrix(res);
-
-        //matrix.logMemorySavings();
 
         const connectedGraphs = matrix.convertToConnectedGraph();
 
         let time = performance.now();
         const cycles = connectedGraphs.map(findCycles);
 
-        /*
-        return cycles.flatMap((connectedCyclesOfOneGraph) =>
-            connectedCyclesOfOneGraph.map((connectedCycle) =>
-                connectedCycle.cycles.flatMap((cycle) =>
-                    cycle.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
-                )
-            )
-        );
-        */
-
-
-        console.log('cycles: ', cycles);
         const outlines = cycles.flatMap((connectedCyclesOfOneGraph) =>
             connectedCyclesOfOneGraph.map((connectedCycle) =>
                 findOutlineOfConnectedCyclesLines(connectedCycle.cycles)
             )
         );
-        
 
-        time = performance.now() - time;
-        console.log(`Cycle and Outline: Took ${time.toPrecision(4)} ms`);
         const {hull, remainingOutlines} = convexHull(outlines);
 
         const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
-        console.log('eFlowFormat: ', base);
 
         return cyclesWithOutline.map((cycle) =>
             cycle.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])

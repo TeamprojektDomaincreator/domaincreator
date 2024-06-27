@@ -99,26 +99,7 @@ export function convexHull(outlines: UnorderdLineSegment[][]): {
 	const rawHull = createLinesFromPoints([...res]);
 	const result: UnorderdLineSegment[] = [];
 	const remainingOutlines: UnorderdLineSegment[][] = [];
-
-	// TODO (SAM) FIX THIS
-	// hull.forEach((hullLine) => {
-	// 	outlines.forEach((outline) => {
-	// 		if (includesObject(outline, hullLine)) {
-	// 			console.log('hull Line excluded and outline added')
-	// 			result.push(...outline.filter((line) => !includesObject(hull, line) && !includesObject(result, line)));
-	// 			return;
-	// 		} else if (!includesObject(result, hullLine)) {
-	// 			console.log('hull Line added')
-	// 			result.push(hullLine);
-	// 			remainingOutlines.push(outline);
-	// 		}
-	// 	});
-	// });
-	// return {
-	// 	customHull: result,
-	// 	remainingOutlines: remainingOutlines
-	// };
-
+	
 	outlines.forEach((outline) => {
 		var touchesHull: boolean = false;
 		outline.forEach((line) => {
