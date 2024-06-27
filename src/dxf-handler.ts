@@ -1,8 +1,8 @@
 import { convexHull } from './convex-hull';
-import {findCycles} from './cycles';
-import {toEflowFormat} from './eFlowTranslation';
-import {SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment} from './line-tools';
-import {findOutlineOfConnectedCyclesLines} from './outline';
+import { findCycles } from './cycles';
+import { toEflowFormat } from './eFlowTranslation';
+import { SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment } from './line-tools';
+import { findOutlineOfConnectedCyclesLines } from './outline';
 /**
  * Represents a DXF Layer
  */
@@ -198,7 +198,7 @@ export class DxfHandler {
      * @param layerIndices List of indices that the user selected for extraction.
      * @returns A list of of Float32Arrays that each represent a polyline of a object.
      */
-    extractObjects(layerIndices: number[]): number[][] {
+    extractObjects(layerIndices: number[]): { base: any, lines: number[][] } {
         const unprocessedLines: number[] = [];
         layerIndices.forEach((i) => {
             Array.prototype.push.apply(unprocessedLines, this.layers[i].lines);
@@ -221,9 +221,11 @@ export class DxfHandler {
 
         const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
 
-        return cyclesWithOutline.map((cycle) =>
+        const lines = cyclesWithOutline.map((cycle) =>
             cycle.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
         );
+
+        return { base, lines };
     }
 
     _scaleData(layer: Layer): [number[], number] {
