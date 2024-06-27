@@ -5,7 +5,6 @@
  */
 
 import {
-    LineSegment,
     Point,
     UniquePoints,
     UnorderdLineSegment,
@@ -15,10 +14,10 @@ import {AdjacencyMatrix, createLinesFromPoints} from './utils';
 /**
  * Finds the outline of connected cycles in a graph.
  * @function findOutlineOfConnectedCyclesLines
- * @param {LineSegment[][]} cycles - An array of cycles, where each cycle is an array of line segments.
+ * @param {UnorderdLineSegment[][]} cycles - An array of cycles, where each cycle is an array of line segments.
  * @returns {UnorderdLineSegment[]} - An array of unordered line segments representing the outline of the connected cycles.
  */
-export function findOutlineOfConnectedCyclesLines(cycles: LineSegment[][]) {
+export function findOutlineOfConnectedCyclesLines(cycles: UnorderdLineSegment[][]) {
     const cyclesFlat = cycles.flat();
     return hull(cyclesFlat);
 }
@@ -26,11 +25,11 @@ export function findOutlineOfConnectedCyclesLines(cycles: LineSegment[][]) {
 /**
  * Finds the convex hull of a set of lines.
  * @function hull
- * @param {LineSegment[]} lines - An array of line segments.
+ * @param {UnorderdLineSegment[]} lines - An array of line segments.
  * @returns {UnorderdLineSegment[]} - An array of unordered line segments representing the convex hull.
  * @private
  */
-function hull(lines: LineSegment[]): UnorderdLineSegment[] {
+function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
     const res: Point[] = [];
 
     const uniquePoints = new UniquePoints();

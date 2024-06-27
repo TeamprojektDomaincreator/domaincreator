@@ -1,27 +1,35 @@
-import {LineSegment, Point, UniquePoints, UnorderdLineSegment} from './line-tools';
+import { Point, UnorderdLineSegment } from './line-tools';
 
 export function toEflowFormat(
     cycles: UnorderdLineSegment[][],
-    minPoint: Float32Array,
-    maxPoint: Float32Array
+    outline: UnorderdLineSegment[]
 ) {
-    const outerPoints = [
-        [minPoint[0] - 1000, minPoint[1] - 1000],
-        [maxPoint[0] + 1000, minPoint[1] - 1000],
-        [maxPoint[0] + 1000, maxPoint[1] + 1000],
-        [minPoint[0] - 1000, maxPoint[1] + 1000],
-    ];
-
-    const holes = simpleFindPointInPolygon(cycles);
-
-    const cyclesEflowIndices: number[][][] = cycles.map(() => []);
-    let currIndex = 4;
-    cycles.forEach((cycle, index) => {
-        const [segmentPoints, pointOrder] = toEflowPoly(cycle, currIndex);
+    const cyclesWithOutline = [outline, ...cycles];
+    const cyclesEflowIndices: number[][][] = cyclesWithOutline.map(() => []);
+    
+    cyclesWithOutline.forEach((cycle, index) => {
+        const [segmentPoints, pointOrder] = toEflowPoly(cycle, index);
         cyclesEflowIndices[index].push(segmentPoints, pointOrder);
-        currIndex += segmentPoints.length / 2;
     });
-    const [segmentPointsInner, pointOrderInner] = cyclesEflowIndices.reduce(
+
+    const eFlowHoles: EFlowHole[] = cyclesEflowIndices.map(([segmentPoints, _]) => {
+        const eFlowHole: EFlowHole = {
+            corners: [],
+            closed: true,
+        };
+        for (let index = 0; index < segmentPoints.length; index += 2) {
+            eFlowHole.corners.push(
+                {
+                    id: Math.random().toString(23).slice(2),
+                    x: segmentPoints[index],
+                    y: segmentPoints[index + 1],
+                },
+            );
+        }
+        return eFlowHole
+    });
+
+    const [segmentPoints, pointOrder] = cyclesEflowIndices.reduce(
         (acc, [segmentPoints, pointOrder]) => {
             acc[0].push(...segmentPoints);
             acc[1].push(...pointOrder);
@@ -29,10 +37,9 @@ export function toEflowFormat(
         }
     );
 
-    const segmentPoints = [...outerPoints.flat(), ...segmentPointsInner];
-    const pointOrder = [0, 1, 1, 2, 2, 3, 3, 0, ...pointOrderInner];
+    const holes = simpleFindPointInPolygon(cycles);
 
-    base.Domainpolygon.segmentPoints = segmentPoints;
+    base.Domainpolygon.segmentPoints = segmentPoints
 
     base.Domainpolygon.numberPoints = segmentPoints.length / 2;
 
@@ -42,21 +49,14 @@ export function toEflowFormat(
 
     base.Domainpolygon.holes = holes;
 
+    base.PolygonCorners = eFlowHoles[0];  
+    
+    base.HoleCorners = eFlowHoles.slice(1);
+
     base.Domainpolygon.numberHoles = holes.length;
 
-    // just for pFlow testing not nessary for eFlow
-    const Exit = {
-        xr: outerPoints[0][0],
-        yr: outerPoints[0][1],
-        xl: outerPoints[1][0],
-        yl: outerPoints[1][1],
-        weight: 1,
-    };
-
-    base.Exit[0] = Exit;
-
     // should return base and the Components to display also the Convex Hull Outline in the ui
-    return base;
+    return {base: base, cyclesWithOutline: cyclesWithOutline};
 }
 
 function simpleFindPointInPolygon(cycles: UnorderdLineSegment[][]) {
@@ -75,7 +75,7 @@ function toEflowPoly(lines: UnorderdLineSegment[], currIndex: number) {
 
     const segmentPoints = points.map((p) => [p.x, p.y]).flat();
     const pointOrder = lines
-        .map(({start, end}) => {
+        .map(({ start, end }) => {
             return [points.indexOf(start) + currIndex, points.indexOf(end) + currIndex];
         })
         .flat();
@@ -84,6 +84,17 @@ function toEflowPoly(lines: UnorderdLineSegment[], currIndex: number) {
 }
 
 interface Hole {
+    x: number;
+    y: number;
+}
+
+interface EFlowHole {
+    corners: Corner[];
+    closed: true;
+}
+
+interface Corner {
+    id: string;
     x: number;
     y: number;
 }
@@ -129,4 +140,19 @@ const base = {
         holes: [] as Hole[],
     },
     Grid: {},
+    PolygonCorners: {
+        corners: [] as Corner[],
+        closed: true
+    },
+    HoleCorners: [] as EFlowHole[],
+    BackgroundImagePosition: {
+        name: "default",
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1
+    }
 };

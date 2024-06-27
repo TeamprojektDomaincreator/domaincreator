@@ -1,3 +1,4 @@
+import { convexHull } from './convex-hull';
 import {findCycles} from './cycles';
 import {toEflowFormat} from './eFlowTranslation';
 import {SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment} from './line-tools';
@@ -87,8 +88,6 @@ export class DxfHandler {
             return;
         }
 
-        let time = performance.now();
-
         /* Windows and Mac/Linux handle return differently */
         const returnChar = fileText.indexOf('\r') === -1 ? '\n' : '\r';
         const entity = ENTITY + returnChar;
@@ -146,10 +145,6 @@ export class DxfHandler {
                 parseFloat(fileText.substring(y2, fileText.indexOf(returnChar, y2)))
             );
         }
-        time = performance.now() - time;
-        console.log(
-            `DXF-Handler: Took ${time.toPrecision(4)} ms to parse ${entityCount + 1} entities.`
-        );
 
         /* Find the minimum and maximum Points */
         for (let i = 0; i < this.layers.length; i++) {
@@ -212,10 +207,9 @@ export class DxfHandler {
 
         const matrix = new SpaceEfficientAdjacencyMatrix(res);
 
-
         const connectedGraphs = matrix.convertToConnectedGraph();
-        const cycles = connectedGraphs.map(findCycles);
 
+        const cycles = connectedGraphs.map(findCycles);
 
         const outlines = cycles.flatMap((connectedCyclesOfOneGraph) =>
             connectedCyclesOfOneGraph.map((connectedCycle) =>
@@ -223,17 +217,13 @@ export class DxfHandler {
             )
         );
 
+        const {hull, remainingOutlines} = convexHull(outlines);
 
-        const [minPoint, maxPoint] = this.minMaxPointsForLayers(layerIndices);
+        const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
 
-        const eFlowFormat = toEflowFormat(outlines, minPoint, maxPoint);
-
-        const outlineComponents = outlines.map((outline) =>
-            outline
-                .flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
+        return cyclesWithOutline.map((cycle) =>
+            cycle.flatMap((line) => [line.start.x, line.start.y, line.end.x, line.end.y])
         );
-
-        return outlineComponents;
     }
 
     _scaleData(layer: Layer): [number[], number] {
