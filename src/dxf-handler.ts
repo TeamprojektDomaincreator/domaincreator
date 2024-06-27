@@ -209,7 +209,6 @@ export class DxfHandler {
 
         const connectedGraphs = matrix.convertToConnectedGraph();
 
-        let time = performance.now();
         const cycles = connectedGraphs.map(findCycles);
 
         const outlines = cycles.flatMap((connectedCyclesOfOneGraph) =>
