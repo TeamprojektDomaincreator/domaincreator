@@ -5,7 +5,6 @@
  */
 
 import {
-    LineSegment,
     Point,
     UniquePoints,
     UnorderdLineSegment,
