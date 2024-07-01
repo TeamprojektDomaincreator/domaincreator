@@ -1,6 +1,6 @@
 import { Point, UniquePoints, UnorderdLineSegment } from "./line-tools";
 import { findOutlineOfConnectedCyclesLines } from "./outline";
-import { createLinesFromPoints } from "./utils";
+import { AdjacencyMatrix, createLinesFromPoints } from "./utils";
 
 /**
  * 
@@ -11,6 +11,7 @@ export function convexHull(outlines: UnorderdLineSegment[][]): {
 	hull: UnorderdLineSegment[],
 	remainingOutlines: UnorderdLineSegment[][]
 } {
+	// Get all Unique points from the outlines
 	const uniquePoints = new UniquePoints();
 	outlines.forEach((outline) => {
 		outline.forEach((line) => {
@@ -19,16 +20,17 @@ export function convexHull(outlines: UnorderdLineSegment[][]): {
 		});
 	});
 
+	// Sort the points by y-coordinate to get the first two points
 	const points = uniquePoints.getPointsSortedByY();
 	const res: Point[] = [];
 	res.push(points[0]);
 	res.push(points[1]);
 
+	// Find all points of the initial convex hull
 	let nextPoint;
-
 	while (!nextPoint?.equals(res[0])) {
 		const neighbors = points.filter(
-			(point) => !res[res.length - 2].equals(point) || !res[res.length - 1].equals(point)
+			(point) => !res[res.length - 2].equals(point) && !res[res.length - 1].equals(point)
 		);
 		if (!neighbors) {
 			break;
@@ -39,28 +41,67 @@ export function convexHull(outlines: UnorderdLineSegment[][]): {
 		res.push(nextPoint);
 	}
 
+	// create the initial hull
 	const rawHull = createLinesFromPoints([...res]);
-	const result: UnorderdLineSegment[] = [];
+	const touchingOutlines: UnorderdLineSegment[][] = [[]];
 	const remainingOutlines: UnorderdLineSegment[][] = [];
 
+	// Check which outlines are touching the hull
 	outlines.forEach((outline) => {
 		var touchesHull: boolean = false;
 		outline.forEach((line) => {
 			if (includesObject(rawHull, line)) {
-				result.push(...outline);
+				touchingOutlines.push(outline);
 				touchesHull = true;
 				return;
 			}
-
 		})
 
 		if (!touchesHull) {
 			remainingOutlines.push(outline);
 		}
 	});
+	
+	// Merge the hull with the touching outlines
+	const tempMerged = mergeAndRemoveMatchingElements(rawHull, touchingOutlines);
 
+	// If there is only one outline, it is the convex hull
+	if (tempMerged.length === 0) {
+		return {
+			hull: rawHull,
+			remainingOutlines: remainingOutlines
+		};
+	}
+
+	// Sort lines to create a polygon from the lines
+	const uniquePoints2 = new UniquePoints();
+	tempMerged.forEach((line) => {
+		uniquePoints2.add(line.start);
+		uniquePoints2.add(line.end);
+	});
+	const sortedPoints = uniquePoints2.getPointsSortedByY();
+	const adjacencyMatrix: AdjacencyMatrix = new AdjacencyMatrix(sortedPoints);
+	
+	tempMerged.forEach((line) => {
+		adjacencyMatrix.addEdge(line.start, line.end);
+	});
+
+	const pointsResult: Point[] = [];
+	pointsResult.push(sortedPoints[0]);
+	pointsResult.push(adjacencyMatrix.getNeighbors(adjacencyMatrix.points[0])[0]);
+	
+	let next = pointsResult[1];
+	while (!next?.equals(pointsResult[0])) {
+		next = adjacencyMatrix.getNeighbors(pointsResult[pointsResult.length - 1])
+		.find(
+            (point) => !pointsResult[pointsResult.length - 2].equals(point) 
+			&& !pointsResult[pointsResult.length - 1].equals(point)
+        )!;
+		pointsResult.push(next!);	
+	}
+	// Create the final hull polygon from sorted lines
 	return {
-		hull: findOutlineOfConnectedCyclesLines([mergeAndRemoveMatchingElements(result, rawHull)]),
+		hull: createLinesFromPoints(pointsResult),
 		remainingOutlines: remainingOutlines
 	};
 }
@@ -130,25 +171,28 @@ function calculateAngle(p1: Point, p2: Point, p3: Point): number {
 }
 
 
-function mergeAndRemoveMatchingElements(convexHull: UnorderdLineSegment[], result: UnorderdLineSegment[]): UnorderdLineSegment[] {
-	const matchingElements = new Set<UnorderdLineSegment>();
+function mergeAndRemoveMatchingElements(convexHull: UnorderdLineSegment[], touchingOutlines: UnorderdLineSegment[][]): UnorderdLineSegment[] {
+	const matchingElements: UnorderdLineSegment[] = [];
 
-	for (const element1 of convexHull) {
-		for (const element2 of result) {
-			if (element1.equals(element2)) {
-				matchingElements.add(element1);
+	for (const convexHullLine of convexHull) {
+		let didHit = false;
+		for (const touchingOutlineLine of touchingOutlines) {
+			if (includesObject(touchingOutlineLine, convexHullLine)) {
+				for (const line of touchingOutlineLine) {
+					if (!includesObject(matchingElements, line) && !includesObject(convexHull, line)) {
+						matchingElements.push(line);
+					}
+				}
+				didHit = true;
+				break;
 			}
+		}
+		if (!didHit) {
+			matchingElements.push(convexHullLine);
 		}
 	}
 
-	const filterMatching = (element: UnorderdLineSegment) => !includesObject([...matchingElements], element);
-
-	const filteredList1 = convexHull.filter(filterMatching);
-	const filteredList2 = result.filter(filterMatching);
-
-	const mergedList = [...filteredList1, ...filteredList2];
-
-	return mergedList;
+	return matchingElements;
 }
 
 function includesObject(arr: object[], obj: object): boolean {

@@ -75,8 +75,7 @@ export class AdjacencyMatrix {
     getNeighbors(point: Point): Point[] {
         const index = this.points.indexOf(point);
         if (index === -1) {
-            console.error('Point not found in matrix');
-            return [];
+            throw new Error('Point not found in matrix');
         }
         const neighbors = [];
         for (let i = 0; i < this.points.length; i++) {
