@@ -64,7 +64,7 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
         }
         // not sure if String is needed here
         const fNeighbors = neighbors.filter(
-            (point) => !res[res.length - 2].equals(point) || !res[res.length - 1].equals(point)
+            (point) => !res[res.length - 2].equals(point) && !res[res.length - 1].equals(point)
         );
         if (fNeighbors.length === 0) {
             break;
@@ -79,12 +79,12 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
             fNeighbors: fNeighbors,
             unfilterdNeighbors: neighbors,
         });
-        */
+        
 
         const nextPointsAngles = fNeighbors.map((point) =>
             calculateAngle(res[res.length - 2], res[res.length - 1], point)
         );
-        /*
+       
         // Debugging
         console.log(
             'nextPoints: ',
