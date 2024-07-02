@@ -64,36 +64,11 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
         }
         // not sure if String is needed here
         const fNeighbors = neighbors.filter(
-            (point) => !res[res.length - 2].equals(point) || !res[res.length - 1].equals(point)
+            (point) => !res[res.length - 2].equals(point) && !res[res.length - 1].equals(point)
         );
         if (fNeighbors.length === 0) {
             break;
         }
-
-        /* 
-        // Debugging
-        console.log('logData: ', {
-            res: [...res],
-            firstPoint: res[res.length - 2],
-            startPoint: res[res.length - 1],
-            fNeighbors: fNeighbors,
-            unfilterdNeighbors: neighbors,
-        });
-        */
-
-        const nextPointsAngles = fNeighbors.map((point) =>
-            calculateAngle(res[res.length - 2], res[res.length - 1], point)
-        );
-        /*
-        // Debugging
-        console.log(
-            'nextPoints: ',
-            nextPointsAngles.map((angle, index) => ({
-                point: fNeighbors[index],
-                angle,
-            }))
-        );
-        */
 
         nextPoint = findPointWithBiggestClockwiseAngle(
             res[res.length - 2],
@@ -102,6 +77,9 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
         );
         matrix.removeEdge(res[res.length - 1], nextPoint);
 
+        if (nextPoint.equals(res[0])) {
+            break;
+        }
         res.push(nextPoint);
     }
 
