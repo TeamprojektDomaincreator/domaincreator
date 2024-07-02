@@ -40,7 +40,7 @@ export function convexHull(
         ) &&
         !pointsOfRawConvexHull[pointsOfRawConvexHull.length - 1].equals(point)
     );
-    if (!neighbors) {
+    if (!neighbors || neighbors?.length <= 0) {
       break;
     }
 
