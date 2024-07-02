@@ -102,6 +102,9 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
         );
         matrix.removeEdge(res[res.length - 1], nextPoint);
 
+        if (nextPoint.equals(res[0])) {
+            break;
+        }
         res.push(nextPoint);
     }
 

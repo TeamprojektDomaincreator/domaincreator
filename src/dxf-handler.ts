@@ -1,7 +1,13 @@
-import { convexHull } from './convex-hull';
+import {convexHull} from './convex-hull';
 import {findCycles} from './cycles';
 import {toEflowFormat} from './eFlowTranslation';
-import {SpaceEfficientAdjacencyMatrix, sweepLine, LineSegment} from './line-tools';
+import {
+    SpaceEfficientAdjacencyMatrix,
+    sweepLine,
+    LineSegment,
+    UnorderdLineSegment,
+    Point,
+} from './line-tools';
 import {findOutlineOfConnectedCyclesLines} from './outline';
 /**
  * Represents a DXF Layer
@@ -11,6 +17,11 @@ export interface Layer {
     lines: number[];
     minPoint: Float32Array;
     maxPoint: Float32Array;
+}
+
+export interface Settings {
+    domainAsRectangle: boolean;
+    noMergeHull: boolean;
 }
 
 /* Constants */
@@ -198,7 +209,7 @@ export class DxfHandler {
      * @param layerIndices List of indices that the user selected for extraction.
      * @returns A list of of Float32Arrays that each represent a polyline of a object.
      */
-    extractObjects(layerIndices: number[]): number[][] {
+    extractObjects(layerIndices: number[], settings: Settings): number[][] {
         const unprocessedLines: number[] = [];
         layerIndices.forEach((i) => {
             Array.prototype.push.apply(unprocessedLines, this.layers[i].lines);
@@ -217,8 +228,34 @@ export class DxfHandler {
             )
         );
 
-        const {hull, remainingOutlines} = convexHull(outlines);
+        if (settings.domainAsRectangle /* || outlines.length === 1 */) {
+            const hull = this._hullByMinMax(layerIndices);
+            const {base, cyclesWithOutline} = toEflowFormat(outlines, hull);
+            return cyclesWithOutline.map((cycle) =>
+                cycle.flatMap((line) => [
+                    line.start.x,
+                    line.start.y,
+                    line.end.x,
+                    line.end.y,
+                ])
+            );
+        }
 
+        if (settings.noMergeHull) {
+            // convex hull mege setting
+            const {hull, remainingOutlines} = convexHull(outlines);
+            const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
+            return cyclesWithOutline.map((cycle) =>
+                cycle.flatMap((line) => [
+                    line.start.x,
+                    line.start.y,
+                    line.end.x,
+                    line.end.y,
+                ])
+            );
+        }
+
+        const {hull, remainingOutlines} = convexHull(outlines);
         const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
 
         return cyclesWithOutline.map((cycle) =>
@@ -266,5 +303,27 @@ export class DxfHandler {
             count += this.layers[i].lines.length / 4;
         });
         return count;
+    }
+
+    _hullByMinMax(layerIndices: number[]) {
+        const [minPoint, maxPoint] = this.minMaxPointsForLayers(layerIndices);
+        return [
+            new UnorderdLineSegment(
+                new Point(minPoint[0], minPoint[1]),
+                new Point(maxPoint[0], minPoint[1])
+            ),
+            new UnorderdLineSegment(
+                new Point(maxPoint[0], minPoint[1]),
+                new Point(maxPoint[0], maxPoint[1])
+            ),
+            new UnorderdLineSegment(
+                new Point(maxPoint[0], maxPoint[1]),
+                new Point(minPoint[0], maxPoint[1])
+            ),
+            new UnorderdLineSegment(
+                new Point(minPoint[0], maxPoint[1]),
+                new Point(minPoint[0], minPoint[1])
+            ),
+        ];
     }
 }

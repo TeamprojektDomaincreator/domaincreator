@@ -1,4 +1,4 @@
-import {DxfHandler, Layer} from './dxf-handler';
+import {DxfHandler, Layer, Settings} from './dxf-handler';
 
 type RenderSettings = {
     ctx: CanvasRenderingContext2D;
@@ -31,7 +31,11 @@ drawButton!.addEventListener('click', () => {
 extractButton!.addEventListener('click', () => {
     const mainCanvasCtx = mainCanvas.getContext('2d') as CanvasRenderingContext2D;
     const [minPoint, maxPoint] = dxfHandler.minMaxPointsForLayers(selectedLayers);
-    const connectedGraph = dxfHandler.extractObjects(selectedLayers);
+    const extractSettings: Settings = {
+        domainAsRectangle: false,
+        noMergeHull: true,
+    };
+    const connectedGraph = dxfHandler.extractObjects(selectedLayers, extractSettings);
 
     mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     mainCanvasCtx.lineWidth = 1;
