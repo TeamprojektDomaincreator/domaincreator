@@ -33,10 +33,10 @@ const downloadJsonButton = document.getElementById('downloadJson');
 // @todo: Add info on current scaling faktor and current layer name to UI
 
 downloadJsonButton!.addEventListener('click', () => {
-    if(!downloadJson) {
+    if (!downloadJson) {
         alert('No data to download please extract first!');
-         return
-    };
+        return;
+    }
 
     const json = JSON.stringify(downloadJson);
     const blob = new Blob([json], {type: 'application/json'});

@@ -1,4 +1,4 @@
-import { Point, UnorderdLineSegment } from './line-tools';
+import {Point, UnorderdLineSegment} from './line-tools';
 
 export function toEflowFormat(
     cycles: UnorderdLineSegment[][],
@@ -6,7 +6,7 @@ export function toEflowFormat(
 ) {
     const cyclesWithOutline = [outline, ...cycles];
     const cyclesEflowIndices: number[][][] = cyclesWithOutline.map(() => []);
-    
+
     cyclesWithOutline.forEach((cycle, index) => {
         const [segmentPoints, pointOrder] = toEflowPoly(cycle, index);
         cyclesEflowIndices[index].push(segmentPoints, pointOrder);
@@ -18,15 +18,13 @@ export function toEflowFormat(
             closed: true,
         };
         for (let index = 0; index < segmentPoints.length; index += 2) {
-            eFlowHole.corners.push(
-                {
-                    id: Math.random().toString(23).slice(2),
-                    x: segmentPoints[index],
-                    y: segmentPoints[index + 1],
-                },
-            );
+            eFlowHole.corners.push({
+                id: Math.random().toString(23).slice(2),
+                x: segmentPoints[index],
+                y: segmentPoints[index + 1],
+            });
         }
-        return eFlowHole
+        return eFlowHole;
     });
 
     const [segmentPoints, pointOrder] = cyclesEflowIndices.reduce(
@@ -39,7 +37,7 @@ export function toEflowFormat(
 
     const holes = simpleFindPointInPolygon(cycles);
 
-    base.Domainpolygon.segmentPoints = segmentPoints
+    base.Domainpolygon.segmentPoints = segmentPoints;
 
     base.Domainpolygon.numberPoints = segmentPoints.length / 2;
 
@@ -49,8 +47,8 @@ export function toEflowFormat(
 
     base.Domainpolygon.holes = holes;
 
-    base.PolygonCorners = eFlowHoles[0];  
-    
+    base.PolygonCorners = eFlowHoles[0];
+
     base.HoleCorners = eFlowHoles.slice(1);
 
     base.Domainpolygon.numberHoles = holes.length;
@@ -75,7 +73,7 @@ function toEflowPoly(lines: UnorderdLineSegment[], currIndex: number) {
 
     const segmentPoints = points.map((p) => [p.x, p.y]).flat();
     const pointOrder = lines
-        .map(({ start, end }) => {
+        .map(({start, end}) => {
             return [points.indexOf(start) + currIndex, points.indexOf(end) + currIndex];
         })
         .flat();
@@ -142,17 +140,17 @@ const base = {
     Grid: {},
     PolygonCorners: {
         corners: [] as Corner[],
-        closed: true
+        closed: true,
     },
     HoleCorners: [] as EFlowHole[],
     BackgroundImagePosition: {
-        name: "default",
+        name: 'default',
         x: 0,
         y: 0,
         width: 0,
         height: 0,
         rotation: 0,
         scaleX: 1,
-        scaleY: 1
-    }
+        scaleY: 1,
+    },
 };
