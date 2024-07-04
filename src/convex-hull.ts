@@ -40,7 +40,7 @@ export function convexHull(
         ) &&
         !pointsOfRawConvexHull[pointsOfRawConvexHull.length - 1].equals(point)
     );
-    if (!neighbors || neighbors?.length <= 0) {
+    if (neighbors?.length <= 0) {
       break;
     }
 
@@ -50,6 +50,9 @@ export function convexHull(
       neighbors
     );
 
+    if (nextPoint.equals(pointsOfRawConvexHull[0])) {
+      break;
+    }
     pointsOfRawConvexHull.push(nextPoint);
   }
 
@@ -122,6 +125,10 @@ export function convexHull(
           !pointsResult[pointsResult.length - 2].equals(point) &&
           !pointsResult[pointsResult.length - 1].equals(point)
       )!;
+
+    if (next.equals(pointsResult[0])) {
+      break;
+    }
     pointsResult.push(next!);
   }
   // Create the final hull polygon from sorted lines
