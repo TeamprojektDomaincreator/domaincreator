@@ -70,6 +70,31 @@ function hull(lines: UnorderdLineSegment[]): UnorderdLineSegment[] {
             break;
         }
 
+        /* 
+        // Debugging
+        console.log('logData: ', {
+            res: [...res],
+            firstPoint: res[res.length - 2],
+            startPoint: res[res.length - 1],
+            fNeighbors: fNeighbors,
+            unfilterdNeighbors: neighbors,
+        });
+        
+
+        const nextPointsAngles = fNeighbors.map((point) =>
+            calculateAngle(res[res.length - 2], res[res.length - 1], point)
+        );
+       
+        // Debugging
+        console.log(
+            'nextPoints: ',
+            nextPointsAngles.map((angle, index) => ({
+                point: fNeighbors[index],
+                angle,
+            }))
+        );
+        */
+
         nextPoint = findPointWithBiggestClockwiseAngle(
             res[res.length - 2],
             res[res.length - 1],
