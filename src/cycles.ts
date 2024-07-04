@@ -1,5 +1,10 @@
-import {LineSegment, Point, SpaceEfficientAdjacencyMatrix, UniquePoints} from './line-tools';
-import { AdjacencyMatrix } from './utils';
+import {
+    LineSegment,
+    Point,
+    SpaceEfficientAdjacencyMatrix,
+    UniquePoints,
+} from './line-tools';
+import {AdjacencyMatrix} from './utils';
 
 /**
  * Interface for connected cycles.
@@ -46,14 +51,15 @@ export function findCycles(graph: LineSegment[]): ConnectedCycle[] {
 }
 
 function connectedCyclesViaGraph(cycle: LineSegment[][]) {
-    const matrix: SpaceEfficientAdjacencyMatrix = new SpaceEfficientAdjacencyMatrix(cycle.flat())
-    const connect = matrix.convertToConnectedGraph()
+    const matrix: SpaceEfficientAdjacencyMatrix = new SpaceEfficientAdjacencyMatrix(
+        cycle.flat()
+    );
+    const connect = matrix.convertToConnectedGraph();
     const res: ConnectedCycle[] = [];
-    connect.forEach((cc,index) =>{
-        res.push({cycles: [cc]})
-
-    })
-    return res
+    connect.forEach((cc, index) => {
+        res.push({cycles: [cc]});
+    });
+    return res;
 }
 
 /**

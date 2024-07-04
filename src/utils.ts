@@ -27,7 +27,6 @@ export function createLinesFromPoints(points: Point[]): UnorderdLineSegment[] {
     return lines;
 }
 
-
 /**
  * Class representing an adjacency matrix for a graph.
  * @class
@@ -65,7 +64,6 @@ export class AdjacencyMatrix {
     getCellByIndex(i1: number, i2: number) {
         return this.matrix[i1][i2];
     }
-
 
     /**
      * Gets the neighboring points of a given point.
