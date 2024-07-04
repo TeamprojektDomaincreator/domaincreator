@@ -1,4 +1,4 @@
-# DXF-Playground
+# Domaincreator
 [Live Preview](https://domaincreator-f414b.web.app/)
 
 <img width="1535" alt="image" src="https://github.com/TeamprojektDomaincreator/domaincreator/assets/92333768/372d16c5-9cc1-4500-8a5d-8615121b962c">
