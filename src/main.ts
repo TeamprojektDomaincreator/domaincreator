@@ -9,10 +9,17 @@ type RenderSettings = {
     scaleFactor: number;
 };
 
+/* this is the settings object that will be used to extract the objects from the dxf file */
+const extractSettings: Settings = {
+    domainAsRectangle: false,
+    mergeHull: true,
+};
+
 let mainCanvasScale = 1;
 let selectedLayers: number[] = [];
 
 const dxfHandler = new DxfHandler();
+let downloadJson: any;
 
 const drawButton = document.getElementById('drawButton');
 const numEntities = document.getElementById('numberOfEntities');
@@ -21,18 +28,22 @@ const scaleDown = document.getElementById('scaleDownButton');
 const fileInput = document.getElementById('fileInput');
 const extractButton = document.getElementById('extract');
 const mainCanvas = document.getElementById('myCanvas') as HTMLCanvasElement;
-const downloadJsonButton = document.getElementById('downloadJson')
+const downloadJsonButton = document.getElementById('downloadJson');
 
 // @todo: Add info on current scaling faktor and current layer name to UI
 
 downloadJsonButton!.addEventListener('click', () => {
-    const extractData = dxfHandler.extractObjects(selectedLayers);
-    const json = JSON.stringify(extractData.base);
-    const blob = new Blob([json], { type: 'application/json' });
+    if(!downloadJson) {
+        alert('No data to download please extract first!');
+         return
+    };
+
+    const json = JSON.stringify(downloadJson);
+    const blob = new Blob([json], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'extracted.json';
+    a.download = 'dxfToEflow.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -45,11 +56,8 @@ drawButton!.addEventListener('click', () => {
 extractButton!.addEventListener('click', () => {
     const mainCanvasCtx = mainCanvas.getContext('2d') as CanvasRenderingContext2D;
     const [minPoint, maxPoint] = dxfHandler.minMaxPointsForLayers(selectedLayers);
-    const extractSettings: Settings = {
-        domainAsRectangle: false,
-        noMergeHull: true,
-    };
-    const connectedGraph = dxfHandler.extractObjects(selectedLayers, extractSettings);
+    const {lines, base} = dxfHandler.extractObjects(selectedLayers, extractSettings);
+    downloadJson = base;
 
     mainCanvasCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     mainCanvasCtx.lineWidth = 1;
@@ -63,7 +71,7 @@ extractButton!.addEventListener('click', () => {
         scaleFactor: mainCanvasScale,
     };
 
-    connectedGraph.lines.forEach((lines) => {
+    lines.forEach((lines) => {
         const randomColor =
             'rgba(' +
             Math.floor(Math.random() * 256) +

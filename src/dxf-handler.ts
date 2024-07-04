@@ -21,7 +21,7 @@ export interface Layer {
 
 export interface Settings {
     domainAsRectangle: boolean;
-    noMergeHull: boolean;
+    mergeHull: boolean;
 }
 
 /* Constants */
@@ -241,21 +241,7 @@ export class DxfHandler {
             )}
         }
 
-        if (settings.noMergeHull) {
-            // convex hull mege setting
-            const {hull, remainingOutlines} = convexHull(outlines);
-            const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
-            return {base, lines: cyclesWithOutline.map((cycle) =>
-                cycle.flatMap((line) => [
-                    line.start.x,
-                    line.start.y,
-                    line.end.x,
-                    line.end.y,
-                ])
-            )}
-        }
-
-        const {hull, remainingOutlines} = convexHull(outlines);
+        const {hull, remainingOutlines} = convexHull(outlines, settings.mergeHull);
         const {base, cyclesWithOutline} = toEflowFormat(remainingOutlines, hull);
 
         const lines = cyclesWithOutline.map((cycle) =>
