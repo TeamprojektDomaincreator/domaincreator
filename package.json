@@ -1,14 +1,14 @@
 {
-  "name": "dxf-playground",
+  "name": "domaincreator",
   "version": "1.0.0",
-  "description": "Simple program to test out loading a dxf file",
+  "description": "Converts dxf to eFlowFormat.",
   "main": "public/index.html",
   "scripts": {
     "build": "esbuild src/main.ts --bundle --outdir=public",
     "serve": "esbuild src/main.ts --bundle --outdir=public --servedir=public  --serve --watch",
     "pretty": "prettier --config ./prettierrc.json --write \"src/*.ts\""
   },
-  "author": "Timothy Hale",
+  "author": "Domaincreator Teamprojekt",
   "license": "MIT",
   "devDependencies": {
     "esbuild": "0.20.2",
