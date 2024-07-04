@@ -1,33 +1,16 @@
 # DXF-Playground
 [Live Preview](https://domaincreator-f414b.web.app/)
 
-![Screenshot](https://github.com/timothyhale/dxf-playground/blob/main/images/screenshot.png)
+<img width="1535" alt="image" src="https://github.com/TeamprojektDomaincreator/domaincreator/assets/92333768/372d16c5-9cc1-4500-8a5d-8615121b962c">
 
 
-## Set-up instructions
+## Overview
 
-- Install, build and run server:
+Domaincreator parses all line entities from a DXF file to identify the outer domain of the drawing, consolidates lines within this domain into their largest polygons, and classifies these as "objects" in eFlow terms. The output is a `.json` file in eFlow format, which can be uploaded to the Flowculate program for further use.
+- eFlow description: https://www-home.htwg-konstanz.de/~raxthelm/eFlow/#/
+- Flowculate Application: https://www.flowculate.eu/app
 
-```js
-npm install
-npm run
-```
+For more information and a demo, visit the [Domaincreator Wiki](https://github.com/TeamprojektDomaincreator/domaincreator/wiki).
 
-- Click on URL:
-
-```
-> dxf-playground@1.0.0 run
-> esbuild src/main.ts --bundle --outdir=www --servedir=www --serve --watch
-
-
- > Local:   http://127.0.0.1:8000/
- > Network: http://192.168.0.107:8000/
-
-[watch] build finished, watching for changes...
-
-```
-
-- Select a dxf file to load.
-
-
-
+---
+For more detailed information and updates, visit the [Domaincreator GitHub Repository](https://github.com/TeamprojektDomaincreator/domaincreator).
